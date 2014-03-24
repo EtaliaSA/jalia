@@ -16,14 +16,14 @@ import net.etalia.json2.stream.JsonWriter;
 public class ListJsonDeSer implements JsonDeSer {
 
 	@Override
-	public int handlesSerialization(JSONContext context, Class<?> clazz) {
+	public int handlesSerialization(JsonContext context, Class<?> clazz) {
 		if (Iterable.class.isAssignableFrom(clazz)) return 10;
 		if (clazz.isArray()) return 10;
 		return -1;
 	}
 	
 	@Override
-	public int handlesDeserialization(JSONContext context, TypeUtil hint) {
+	public int handlesDeserialization(JsonContext context, TypeUtil hint) {
 		if (hint != null) {
 			if (hint.isArray() || Iterable.class.isAssignableFrom(hint.getConcrete())) return 10;
 		}
@@ -34,7 +34,7 @@ public class ListJsonDeSer implements JsonDeSer {
 	}
 
 	@Override
-	public void serialize(Object obj, JSONContext context) throws IOException {
+	public void serialize(Object obj, JsonContext context) throws IOException {
 		JsonWriter output = context.getOutput();
 		output.beginArray();
 		if (obj.getClass().isArray()) {
@@ -50,7 +50,7 @@ public class ListJsonDeSer implements JsonDeSer {
 	}
 
 	@Override
-	public Object deserialize(JSONContext context, Object pre, TypeUtil hint) throws IOException {
+	public Object deserialize(JsonContext context, Object pre, TypeUtil hint) throws IOException {
 		List<Object> act = null;
 		if (pre != null && pre.getClass().isArray()) {
 			act = new ArrayList<Object>();
@@ -110,6 +110,7 @@ public class ListJsonDeSer implements JsonDeSer {
 				act.set(i, val);
 				i++;
 			}
+			if (act.size() > i) act.remove(i);
 		}
 		input.endArray();
 		if ((pre != null && pre.getClass().isArray()) || (hint != null && hint.isArray())) {

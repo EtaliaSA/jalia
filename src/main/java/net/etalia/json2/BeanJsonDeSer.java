@@ -11,13 +11,13 @@ import net.etalia.json2.stream.JsonWriter;
 public class BeanJsonDeSer implements JsonDeSer {
 
 	@Override
-	public int handlesSerialization(JSONContext context, Class<?> clazz) {
+	public int handlesSerialization(JsonContext context, Class<?> clazz) {
 		if (clazz.isPrimitive() || clazz.isArray()) return 0;
 		return 5;
 	}
 	
 	@Override
-	public int handlesDeserialization(JSONContext context, TypeUtil hint) {
+	public int handlesDeserialization(JsonContext context, TypeUtil hint) {
 		JsonReader la = context.getInput().lookAhead();
 		try {
 			if (la.peek() != JsonToken.BEGIN_OBJECT) return -1;
@@ -44,7 +44,7 @@ public class BeanJsonDeSer implements JsonDeSer {
 	}
 
 	@Override
-	public void serialize(Object obj, JSONContext context) throws IOException {
+	public void serialize(Object obj, JsonContext context) throws IOException {
 		JsonWriter output = context.getOutput();
 		ObjectMapper mapper = context.getMapper();
 		JsonClassData cd = JsonClassData.get(obj.getClass(), context);
@@ -74,7 +74,7 @@ public class BeanJsonDeSer implements JsonDeSer {
 	}
 
 	@Override
-	public Object deserialize(JSONContext context, Object pre, TypeUtil hint) throws IOException {
+	public Object deserialize(JsonContext context, Object pre, TypeUtil hint) throws IOException {
 		// Search for @entity and id
 		String id = null;
 		String entity = null;

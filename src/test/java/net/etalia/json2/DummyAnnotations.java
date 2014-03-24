@@ -1,9 +1,13 @@
 package net.etalia.json2;
 
+import net.etalia.json2.annotations.DefaultFieldsSerialization;
 import net.etalia.json2.annotations.JsonGetter;
 import net.etalia.json2.annotations.JsonIgnore;
+import net.etalia.json2.annotations.JsonIgnoreProperties;
 import net.etalia.json2.annotations.JsonSetter;
 
+@JsonIgnoreProperties({"hidden1","hidden2"})
+@DefaultFieldsSerialization("both")
 public class DummyAnnotations {
 
 	private String both;
@@ -14,6 +18,9 @@ public class DummyAnnotations {
 	private String setOnly;
 	private String setOnlyBySetter;
 	private String unusualGetter;
+	
+	private String hidden1;
+	private String hidden2;
 	
 	public String getBoth() {
 		return both;
@@ -83,5 +90,17 @@ public class DummyAnnotations {
 		this.unusualGetter = unusualGetter;
 	}
 	
+	public String getHidden1() {
+		return hidden1;
+	}
+	public void setHidden1(String hidden1) {
+		this.hidden1 = hidden1;
+	}
+	public String getHidden2() {
+		return hidden2;
+	}
+	public void setHidden2(String hidden2) {
+		this.hidden2 = hidden2;
+	}
 	
 }

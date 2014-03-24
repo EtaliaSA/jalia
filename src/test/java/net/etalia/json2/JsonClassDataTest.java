@@ -61,7 +61,7 @@ public class JsonClassDataTest {
 	public void altered() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.setEntityFactory(new DummyEntityProvider());
-		JSONContext ctx = new JSONContext(mapper);
+		JsonContext ctx = new JsonContext(mapper);
 		
 		JsonClassData jcd = JsonClassData.get(DummyPerson.class, ctx);
 		assertThat(jcd, notNullValue());
@@ -92,6 +92,7 @@ public class JsonClassDataTest {
 		
 		assertThat(jcd.getGettables(), containsInAnyOrder("both","getOnly","getOnlyByGetter","unusual"));
 		assertThat(jcd.getSettables(), containsInAnyOrder("both","setOnly","setOnlyBySetter","unusual"));
+		assertThat(jcd.getDefaults(), containsInAnyOrder("both"));
 	}
 	
 }

@@ -5,7 +5,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import net.etalia.json2.stream.JsonReader;
 import net.etalia.json2.stream.JsonToken;
@@ -14,12 +17,12 @@ import net.etalia.json2.stream.JsonWriter;
 public class MapJsonDeSer implements JsonDeSer {
 
 	@Override
-	public int handlesSerialization(JSONContext context, Class<?> clazz) {
+	public int handlesSerialization(JsonContext context, Class<?> clazz) {
 		return (clazz != null && Map.class.isAssignableFrom(clazz)) ? 10 : 0;
 	}
 	
 	@Override
-	public int handlesDeserialization(JSONContext context, TypeUtil hint) {
+	public int handlesDeserialization(JsonContext context, TypeUtil hint) {
 		if (hint != null)
 			if (Map.class.isAssignableFrom(hint.getConcrete())) return 10;
 		try {
@@ -29,7 +32,7 @@ public class MapJsonDeSer implements JsonDeSer {
 	}
 
 	@Override
-	public void serialize(Object obj, JSONContext context) throws IOException {
+	public void serialize(Object obj, JsonContext context) throws IOException {
 		JsonWriter output = context.getOutput();
 		output.beginObject();
 		Map<String,?> map = (Map<String,?>) obj;
@@ -44,7 +47,7 @@ public class MapJsonDeSer implements JsonDeSer {
 	}
 
 	@Override
-	public Object deserialize(JSONContext context, Object pre, TypeUtil hint) throws IOException {
+	public Object deserialize(JsonContext context, Object pre, TypeUtil hint) throws IOException {
 		Map<String,Object> act = (Map<String, Object>) pre;
 		TypeUtil inner = null;
 		if (act == null) {
@@ -69,11 +72,16 @@ public class MapJsonDeSer implements JsonDeSer {
 		
 		JsonReader input = context.getInput();
 		input.beginObject();
+		Set<String> keys = new HashSet<String>();
 		while (input.hasNext()) {
 			String name = input.nextName();
+			keys.add(name);
 			Object preval = act.get(name);
 			Object val = context.getMapper().readValue(context, preval, inner);
 			act.put(name, val);
+		}
+		for (Iterator<String> iter = act.keySet().iterator(); iter.hasNext();) {
+			if (!keys.contains(iter.next())) iter.remove();
 		}
 		input.endObject();
 		return act;

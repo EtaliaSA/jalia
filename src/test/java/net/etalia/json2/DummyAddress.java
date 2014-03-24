@@ -13,6 +13,14 @@ public class DummyAddress extends DummyEntity {
 	private AddressType type;
 	private String address;
 	
+	public DummyAddress() {}
+	
+	public DummyAddress(String id, AddressType type, String address) {
+		this.setIdentifier(id);
+		this.type = type;
+		this.address = address;
+	}
+	
 	public AddressType getType() {
 		return type;
 	}
@@ -26,5 +34,12 @@ public class DummyAddress extends DummyEntity {
 	public void setAddress(String address) {
 		this.address = address;
 	}
+
+	@Override
+	public String toString() {
+		return "DummyAddress [type=" + type + ", address=" + address
+				+ ", id=" + getIdentifier() + "]";
+	}
+	
 	
 }

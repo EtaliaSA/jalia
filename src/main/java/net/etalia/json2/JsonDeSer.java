@@ -5,12 +5,12 @@ import java.lang.reflect.Type;
 
 public interface JsonDeSer {
 
-	public int handlesSerialization(JSONContext context, Class<?> clazz);
+	public int handlesSerialization(JsonContext context, Class<?> clazz);
 	
-	public int handlesDeserialization(JSONContext context, TypeUtil hint);
+	public int handlesDeserialization(JsonContext context, TypeUtil hint);
 	
-	public void serialize(Object obj, JSONContext context) throws IOException;
+	public void serialize(Object obj, JsonContext context) throws IOException;
 	
-	public Object deserialize(JSONContext context, Object pre, TypeUtil hint) throws IOException;
+	public Object deserialize(JsonContext context, Object pre, TypeUtil hint) throws IOException;
 	
 }

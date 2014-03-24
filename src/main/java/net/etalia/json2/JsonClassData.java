@@ -19,7 +19,7 @@ public class JsonClassData {
 
 	private static LockHashMap<Class<?>, JsonClassData> cache = new LockHashMap<Class<?>, JsonClassData>();
 	
-	public static JsonClassData get(Class<?> clazz, JSONContext context) {
+	public static JsonClassData get(Class<?> clazz, JsonContext context) {
 		cache.lockRead();
 		try {
 			JsonClassData ret = cache.get(clazz);

@@ -63,7 +63,7 @@ public class ObjectMapper {
 		// TODO add default desers
 	}
 	
-	protected JsonDeSer getSerializerFor(JSONContext context, Object obj) {
+	protected JsonDeSer getSerializerFor(JsonContext context, Object obj) {
 		Class<?> clazz = null;
 		if (obj != null) {
 			clazz = obj.getClass();
@@ -98,7 +98,7 @@ public class ObjectMapper {
 		return deser;
 	}
 
-	protected JsonDeSer getDeserializerFor(JSONContext context, TypeUtil hint) {
+	protected JsonDeSer getDeserializerFor(JsonContext context, TypeUtil hint) {
 		if (hint != null) {
 			deserializers.lockRead();
 			try {
@@ -132,14 +132,14 @@ public class ObjectMapper {
 	}
 	
 	public void writeValue(JsonWriter jsonOut, OutField fields, Object obj) {
-		JSONContext ctx = new JSONContext(this);
+		JsonContext ctx = new JsonContext(this);
 		ctx.setOutput(jsonOut);
 		if (fields == null) fields = new OutField(true);
 		ctx.setRootFields(fields);
 		writeValue(obj, ctx);
 	}
 	
-	public void writeValue(Object obj, JSONContext context) {
+	public void writeValue(Object obj, JsonContext context) {
 		JsonDeSer deser = getSerializerFor(context, obj);
 		if (deser == null) throw new IllegalStateException("Cannot find a JSON serializer for " + obj);
 		try {
@@ -151,12 +151,12 @@ public class ObjectMapper {
 	
 	
 	public Object readValue(JsonReader jsonIn, Object pre, TypeUtil hint) {
-		JSONContext ctx = new JSONContext(this);
+		JsonContext ctx = new JsonContext(this);
 		ctx.setInput(jsonIn);
 		return readValue(ctx, pre, hint);
 	}
 	
-	public Object readValue(JSONContext ctx, Object pre, TypeUtil hint) {
+	public Object readValue(JsonContext ctx, Object pre, TypeUtil hint) {
 		JsonDeSer deser = getDeserializerFor(ctx, hint);
 		if (deser == null) throw new IllegalStateException("Cannot find a JSON deserializer for " + pre + " " + hint);
 		try {

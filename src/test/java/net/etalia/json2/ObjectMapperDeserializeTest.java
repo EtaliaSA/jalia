@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
 import java.util.LinkedList;
@@ -204,8 +205,10 @@ public class ObjectMapperDeserializeTest {
 				"}";
 		
 		ObjectMapper om = new ObjectMapper();
-		om.setEntityNameProvider(new DummyEntityProvider());
-		om.setEntityFactory(new DummyEntityProvider());
+		DummyEntityProvider provider = new DummyEntityProvider();
+		provider.addToDb(new DummyPerson("p1", "Simone","Gianni"));
+		om.setEntityNameProvider(provider);
+		om.setEntityFactory(provider);
 		om.init();
 		Object val = om.readValue(json.replace("'", "\""), null);
 		
@@ -268,8 +271,104 @@ public class ObjectMapperDeserializeTest {
 	
 	@Test
 	public void differentEntitiesInList() throws Exception {
-		DummyPerson person = new DummyPerson();
+		DummyAddress a1 = new DummyAddress("a1",AddressType.EMAIL, "simoneg@apache.org");
+		DummyAddress a2 = new DummyAddress("a2",AddressType.HOME, "Via Prove, 21");
 		
+		DummyPerson person = new DummyPerson("p1","Simone","Gianni",a1,a2);
+		List<DummyAddress> prelist = person.getAddresses();
+		
+		DummyEntityProvider provider = new DummyEntityProvider();
+		provider.addToDb(person,a1,a2);
+		
+		ObjectMapper om = new ObjectMapper();
+		om.setEntityNameProvider(provider);
+		om.setEntityFactory(provider);
+		om.init();
+		
+		String json = 
+				"{" +
+					"'@entity':'Person'," +
+					"'id':'p1'," +
+					"'addresses':[" +
+						"{" +
+							"'@entity':'Address'," +
+							"'id':'a3'," +
+							"'type':'EMAIL'," +
+							"'address':'a@b.com'" +
+						"}"+
+						"," +
+						"{" +
+							"'@entity':'Address'," +
+							"'id':'a1'" +
+						"}" +
+						"," +
+						"{" +
+							"'@entity':'Address'," +
+							"'id':'a2'" +
+						"}" +
+					"]" +
+				"}";
+		
+		Object rpersonObj = om.readValue(json.replace("'", "\""), null);
+		DummyPerson rperson = (DummyPerson) rpersonObj;
+		
+		assertThat(rperson, sameInstance(person));
+		assertThat(rperson.getAddresses(), sameInstance(prelist));
+		
+		assertThat(prelist, hasSize(3));
+		assertThat(prelist.get(0).getIdentifier(), equalTo("a3"));
+		assertThat(prelist.get(1), sameInstance(a1));
+		assertThat(prelist.get(2), sameInstance(a2));
 	}
+	
+	@Test
+	public void lessEntitiesInList() throws Exception {
+		DummyAddress a1 = new DummyAddress("a1",AddressType.EMAIL, "simoneg@apache.org");
+		DummyAddress a2 = new DummyAddress("a2",AddressType.HOME, "Via Prove, 21");
+		DummyAddress a3 = new DummyAddress("a3",AddressType.OFFICE, "Via del Lavoro, 21");
+		
+		DummyPerson person = new DummyPerson("p1","Simone","Gianni",a1,a2,a3);
+		List<DummyAddress> prelist = person.getAddresses();
+		
+		DummyEntityProvider provider = new DummyEntityProvider();
+		provider.addToDb(person,a1,a2);
+		
+		ObjectMapper om = new ObjectMapper();
+		om.setEntityNameProvider(provider);
+		om.setEntityFactory(provider);
+		om.init();
+		
+		String json = 
+				"{" +
+					"'@entity':'Person'," +
+					"'id':'p1'," +
+					"'addresses':[" +
+						"{" +
+							"'@entity':'Address'," +
+							"'id':'a4'," +
+							"'type':'EMAIL'," +
+							"'address':'a@b.com'" +
+						"}"+
+						"," +
+						"{" +
+							"'@entity':'Address'," +
+							"'id':'a1'" +
+						"}" +
+					"]" +
+				"}";
+		
+		Object rpersonObj = om.readValue(json.replace("'", "\""), null);
+		DummyPerson rperson = (DummyPerson) rpersonObj;
+		
+		assertThat(rperson, sameInstance(person));
+		assertThat(rperson.getAddresses(), sameInstance(prelist));
+		
+		System.out.println(rperson);
+		
+		assertThat(prelist, hasSize(2));
+		assertThat(prelist.get(0).getIdentifier(), equalTo("a4"));
+		assertThat(prelist.get(1), sameInstance(a1));
+	}
+	
 	
 }

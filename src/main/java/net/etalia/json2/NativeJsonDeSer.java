@@ -10,7 +10,7 @@ import net.etalia.json2.stream.JsonWriter;
 public class NativeJsonDeSer implements JsonDeSer {
 
 	@Override
-	public int handlesSerialization(JSONContext context, Class<?> clazz) {
+	public int handlesSerialization(JsonContext context, Class<?> clazz) {
 		if (clazz == null) return 10;
 		if (clazz.isPrimitive()) return 10;
 		if (Number.class.isAssignableFrom(clazz)) return 10;
@@ -21,7 +21,7 @@ public class NativeJsonDeSer implements JsonDeSer {
 	}
 	
 	@Override
-	public int handlesDeserialization(JSONContext context, TypeUtil hint) {
+	public int handlesDeserialization(JsonContext context, TypeUtil hint) {
 		if (hint != null) {
 			return handlesSerialization(context, hint.getConcrete());
 		}
@@ -35,7 +35,7 @@ public class NativeJsonDeSer implements JsonDeSer {
 	}
 
 	@Override
-	public void serialize(Object obj, JSONContext context) throws IOException {
+	public void serialize(Object obj, JsonContext context) throws IOException {
 		JsonWriter output = context.getOutput();
 		if (obj == null) {
 			output.nullValue();
@@ -53,7 +53,7 @@ public class NativeJsonDeSer implements JsonDeSer {
 	}
 
 	@Override
-	public Object deserialize(JSONContext context, Object pre, TypeUtil hint) throws IOException {
+	public Object deserialize(JsonContext context, Object pre, TypeUtil hint) throws IOException {
 		JsonReader input = context.getInput();
 		JsonToken peek = input.peek();
 		Object ret = null;

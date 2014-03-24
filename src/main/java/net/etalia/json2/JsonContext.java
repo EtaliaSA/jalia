@@ -6,7 +6,7 @@ import java.util.Collection;
 import net.etalia.json2.stream.JsonReader;
 import net.etalia.json2.stream.JsonWriter;
 
-public class JSONContext {
+public class JsonContext {
 
 	private ObjectMapper mapper;
 	private JsonWriter output;
@@ -16,7 +16,7 @@ public class JSONContext {
 	private OutField currentFields;
 	
 	
-	public JSONContext(ObjectMapper mapper) {
+	public JsonContext(ObjectMapper mapper) {
 		this.mapper = mapper;
 	}
 	
