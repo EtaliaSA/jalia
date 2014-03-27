@@ -33,7 +33,7 @@ public class ObjectMapperDeserializeTest {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.init();
 		
-		Object ret = mapper.readValue(json, null);
+		Object ret = mapper.readValue(json);
 		assertThat(ret, notNullValue());
 		assertThat(ret, instanceOf(Map.class));
 		
@@ -86,7 +86,7 @@ public class ObjectMapperDeserializeTest {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.init();
 		
-		Object ret = mapper.readValue(json, null);
+		Object ret = mapper.readValue(json);
 		assertThat(ret, notNullValue());
 		assertThat(ret, instanceOf(List.class));
 		
@@ -175,7 +175,7 @@ public class ObjectMapperDeserializeTest {
 		ObjectMapper om = new ObjectMapper();
 		om.setEntityNameProvider(new DummyEntityProvider());
 		om.init();
-		Object val = om.readValue(json.replace("'", "\""), null);
+		Object val = om.readValue(json.replace("'", "\""));
 		
 		assertThat(val, notNullValue());
 		assertThat(val, instanceOf(DummyPerson.class));
@@ -212,7 +212,7 @@ public class ObjectMapperDeserializeTest {
 		om.setEntityNameProvider(provider);
 		om.setEntityFactory(provider);
 		om.init();
-		Object val = om.readValue(json.replace("'", "\""), null);
+		Object val = om.readValue(json.replace("'", "\""));
 		
 		assertThat(val, notNullValue());
 		assertThat(val, instanceOf(DummyPerson.class));
@@ -268,7 +268,7 @@ public class ObjectMapperDeserializeTest {
 		ObjectMapper om = new ObjectMapper();
 		om.setEntityNameProvider(new DummyEntityProvider());
 		om.init();
-		om.readValue(json.replace("'", "\""), null);
+		om.readValue(json.replace("'", "\""));
 	}
 	
 	@Test
@@ -311,7 +311,7 @@ public class ObjectMapperDeserializeTest {
 					"]" +
 				"}";
 		
-		Object rpersonObj = om.readValue(json.replace("'", "\""), null);
+		Object rpersonObj = om.readValue(json.replace("'", "\""));
 		DummyPerson rperson = (DummyPerson) rpersonObj;
 		
 		assertThat(rperson, sameInstance(person));
@@ -359,7 +359,7 @@ public class ObjectMapperDeserializeTest {
 					"]" +
 				"}";
 		
-		Object rpersonObj = om.readValue(json.replace("'", "\""), null);
+		Object rpersonObj = om.readValue(json.replace("'", "\""));
 		DummyPerson rperson = (DummyPerson) rpersonObj;
 		
 		assertThat(rperson, sameInstance(person));

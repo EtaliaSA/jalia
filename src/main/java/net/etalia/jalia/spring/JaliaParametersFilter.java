@@ -47,4 +47,8 @@ public class JaliaParametersFilter implements Filter {
 		parameterName = config.getInitParameter("parameterName");
 	}
 
+	public static void clean() {
+		fields.remove();
+	}
+
 }

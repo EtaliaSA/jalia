@@ -2,6 +2,7 @@ package net.etalia.jalia;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertThat;
 
 import java.io.StringWriter;
@@ -222,11 +223,7 @@ public class ObjectMapperSerializeTest {
 		person.setSurname("Gianni");
 		person.setIdentifier("p1");
 		
-		DummyAddress address = new DummyAddress();
-		address.setType(AddressType.EMAIL);
-		address.setAddress("simoneg@apache.org");
-		address.setIdentifier("a1");
-		
+		DummyAddress address = new DummyAddress("a1", AddressType.EMAIL, "simoneg@apache.org");
 		person.getAddresses().add(address);
 		
 		return person;
@@ -261,6 +258,36 @@ public class ObjectMapperSerializeTest {
 		assertThat(json, containsString("\"p1\""));
 		assertThat(json, containsString("\"a1\""));
 		
+		assertThat(json, not(containsString("\"defaultType\"")));
+		
+	}
+	
+	@Test
+	public void nullsOnObject() throws Exception {
+		ObjectMapper om = new ObjectMapper();
+		
+		DummyPerson person = makePerson();
+		person.setSurname(null);
+		
+		String json = om.writeValueAsString(person);
+		assertThat(json, not(containsString("\"surname\":")));
+		
+		om.setSendNulls(true);
+		json = om.writeValueAsString(person);
+		assertThat(json, containsString("\"surname\":"));
+		assertThat(json, containsString("null"));
+	}
+	
+	
+	@Test
+	public void empties() throws Exception {
+		ObjectMapper om = new ObjectMapper();
+		
+		DummyPerson person = makePerson();
+		person.getAddresses().clear();
+		
+		String json = om.writeValueAsString(person);
+		assertThat(json, not(containsString("\"addresses\":")));
 	}
 
 	@Test

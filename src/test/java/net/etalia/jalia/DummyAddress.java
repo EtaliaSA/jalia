@@ -10,10 +10,14 @@ public class DummyAddress extends DummyEntity {
 		EMAIL
 	}
 	
+	public static AddressType getDefaultType() {
+		return AddressType.HOME;
+	}
+	
 	private AddressType type;
 	private String address;
 	
-	public DummyAddress() {}
+	private DummyAddress() {}
 	
 	public DummyAddress(String id, AddressType type, String address) {
 		this.setIdentifier(id);

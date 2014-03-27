@@ -25,7 +25,10 @@ public class ListJsonDeSer implements JsonDeSer {
 	@Override
 	public int handlesDeserialization(JsonContext context, TypeUtil hint) {
 		if (hint != null) {
-			if (hint.isArray() || Iterable.class.isAssignableFrom(hint.getConcrete())) return 10;
+			if (hint.isArray()) return 10;
+			try {
+				if (Iterable.class.isAssignableFrom(hint.getConcrete())) return 10;
+			} catch (Exception e) {}
 		}
 		try {
 			if (context.getInput().peek() == JsonToken.BEGIN_ARRAY) return 10;
@@ -36,12 +39,21 @@ public class ListJsonDeSer implements JsonDeSer {
 	@Override
 	public void serialize(Object obj, JsonContext context) throws IOException {
 		JsonWriter output = context.getOutput();
-		output.beginArray();
 		if (obj.getClass().isArray()) {
+			if (Array.getLength(obj) == 0 && !context.getMapper().isSendEmpty()) {
+				output.clearName();
+				return;
+			}
+			output.beginArray();
 			for (int i = 0; i < Array.getLength(obj); i++) {
 				context.getMapper().writeValue(Array.get(obj, i), context);
 			}
 		} else {
+			if (!((Iterable)obj).iterator().hasNext() && !context.getMapper().isSendEmpty()) {
+				output.clearName();
+				return;
+			}
+			output.beginArray();
 			for (Object so : (Iterable)obj) {
 				context.getMapper().writeValue(so, context);
 			}
@@ -74,7 +86,7 @@ public class ListJsonDeSer implements JsonDeSer {
 				}
 			}
 		}
-		if (inner == null || inner.getConcrete() == Object.class) {
+		if (inner == null || !inner.hasConcrete() || inner.getConcrete() == Object.class) {
 			if (hint != null) {
 				if (hint.isInstantiatable()) {
 					try {

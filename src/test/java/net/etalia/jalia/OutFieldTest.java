@@ -1,6 +1,7 @@
 package net.etalia.jalia;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
@@ -8,6 +9,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.*;
 
 import java.util.Map;
+import java.util.Set;
 
 import net.etalia.jalia.OutField;
 
@@ -66,7 +68,13 @@ public class OutFieldTest {
 		assertThat(root.getSub("pippo.pluto"), nullValue());		
 		assertThat(root.getSub("gallery.pippo"), nullValue());		
 		
-		
+		Set<String> stringList = root.toStringList();
+		System.out.println(stringList);
+		for (String sub : subs) {
+			assertThat(stringList, hasItem(sub));
+		}
+		// There are 3 more subs : gallery, author and author.profile 
+		assertThat(stringList, hasSize(subs.length + 3));
 	}
 
 }

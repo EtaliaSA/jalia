@@ -57,8 +57,8 @@ public class DummyEntityProvider implements EntityFactory, EntityNameProvider {
 			if (ret != null) return ret;
 		}
 		try {
-			ret = (DummyEntity) clazz.newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
+			ret = (DummyEntity)TypeUtil.get(clazz).newInstance();
+		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}

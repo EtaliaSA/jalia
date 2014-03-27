@@ -388,6 +388,12 @@ public class JsonWriter implements Closeable, Flushable {
     deferredName = name;
     return this;
   }
+  
+  public JsonWriter clearName() throws IOException {
+	  if (deferredName == null) throw new IllegalStateException();
+	  deferredName = null;
+	  return this;
+  }
 
   private void writeDeferredName() throws IOException {
     if (deferredName != null) {

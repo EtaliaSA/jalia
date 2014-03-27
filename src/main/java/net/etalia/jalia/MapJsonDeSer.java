@@ -24,7 +24,7 @@ public class MapJsonDeSer implements JsonDeSer {
 	@Override
 	public int handlesDeserialization(JsonContext context, TypeUtil hint) {
 		if (hint != null)
-			if (Map.class.isAssignableFrom(hint.getConcrete())) return 10;
+			if (hint.hasConcrete() && Map.class.isAssignableFrom(hint.getConcrete())) return 10;
 		try {
 			if (context.getInput().peek() == JsonToken.BEGIN_OBJECT) return 5;
 		} catch (IOException e) {}
@@ -34,8 +34,12 @@ public class MapJsonDeSer implements JsonDeSer {
 	@Override
 	public void serialize(Object obj, JsonContext context) throws IOException {
 		JsonWriter output = context.getOutput();
-		output.beginObject();
 		Map<String,?> map = (Map<String,?>) obj;
+		if (map.size() == 0 && !context.getMapper().isSendEmpty()) {
+			output.clearName();
+			return;
+		}
+		output.beginObject();
 		for (Map.Entry<String,?> entry : map.entrySet()) {
 			if (context.entering(entry.getKey(), "*")) {
 				output.name(entry.getKey());

@@ -22,7 +22,7 @@ public class NativeJsonDeSer implements JsonDeSer {
 	
 	@Override
 	public int handlesDeserialization(JsonContext context, TypeUtil hint) {
-		if (hint != null) {
+		if (hint != null && hint.hasConcrete()) {
 			return handlesSerialization(context, hint.getConcrete());
 		}
 		try {

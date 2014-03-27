@@ -22,6 +22,8 @@ public class DummyAnnotations {
 	private String hidden1;
 	private String hidden2;
 	
+	private String alternative;
+	
 	public String getBoth() {
 		return both;
 	}
@@ -102,5 +104,17 @@ public class DummyAnnotations {
 	public void setHidden2(String hidden2) {
 		this.hidden2 = hidden2;
 	}
+	
+	public String getAlternative() {
+		return alternative;
+	}
+	public void setAlternative(String alternative) {
+		this.alternative = alternative;
+	}
+	@JsonSetter
+	public void setAlternative(int alternative) {
+		this.alternative = Integer.toString(alternative);
+	}
+	
 	
 }

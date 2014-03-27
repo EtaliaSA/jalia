@@ -50,10 +50,7 @@ public class JsonClassDataTest {
 		person.setName("Simone");
 		person.setSurname("Gianni");
 		
-		DummyAddress address = new DummyAddress();
-		address.setType(AddressType.EMAIL);
-		address.setAddress("simoneg@apache.org");
-		
+		DummyAddress address = new DummyAddress(null, AddressType.EMAIL, "simoneg@apache.org");
 		person.getAddresses().add(address);
 		
 		assertThat((String)jcd.getValue("name", person), equalTo("Simone"));
@@ -93,9 +90,11 @@ public class JsonClassDataTest {
 	public void annotations() throws Exception {
 		JsonClassData jcd = JsonClassData.get(DummyAnnotations.class, null);
 		
-		assertThat(jcd.getGettables(), containsInAnyOrder("both","getOnly","getOnlyByGetter","unusual"));
-		assertThat(jcd.getSettables(), containsInAnyOrder("both","setOnly","setOnlyBySetter","unusual"));
+		assertThat(jcd.getGettables(), containsInAnyOrder("both","getOnly","getOnlyByGetter","unusual","alternative"));
+		assertThat(jcd.getSettables(), containsInAnyOrder("both","setOnly","setOnlyBySetter","unusual","alternative"));
 		assertThat(jcd.getDefaults(), containsInAnyOrder("both"));
+		
+		assertThat(jcd.getSetHint("alternative").getConcrete(), equalTo((Class)Integer.TYPE));
 	}
 	
 }

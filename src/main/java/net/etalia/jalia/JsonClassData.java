@@ -2,6 +2,7 @@ package net.etalia.jalia;
 
 import java.beans.Introspector;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -93,11 +94,21 @@ public class JsonClassData {
 		// TODO parse JsonTypeInfo
 		// TODO parse JsonSubTypes
 		Method[] methods = c.getDeclaredMethods();
+		// Parse annotated ones first, so that they get priority
 		for (Method method : methods) {
-			if (method.getName().startsWith("get") || method.isAnnotationPresent(JsonGetter.class)) {
+			if (method.isAnnotationPresent(JsonGetter.class)) {
 				parseGetter(method, ignore);
 			}
-			if (method.getName().startsWith("set") || method.isAnnotationPresent(JsonSetter.class)) { // TODO check JsonSetter
+			if (method.isAnnotationPresent(JsonSetter.class)) {
+				parseSetter(method, ignore);
+			}
+		}
+		// Parse not annotated after
+		for (Method method : methods) {
+			if (method.getName().startsWith("get")) {
+				parseGetter(method, ignore);
+			}
+			if (method.getName().startsWith("set")) {
 				parseSetter(method, ignore);
 			}
 		}
@@ -143,6 +154,7 @@ public class JsonClassData {
 		if (method.getName().equals("getClass")) return;
 		if (method.getReturnType().equals(Void.class)) return;
 		if (method.getParameterTypes().length > 0) return;
+		if (Modifier.isStatic(method.getModifiers())) return;
 		method.setAccessible(true);
 		String name = methodName(method, ignore);
 		if (name.startsWith("!")) {
@@ -155,11 +167,13 @@ public class JsonClassData {
 			}
 			return;
 		}
+		if (this.getters.containsKey(name)) return;
 		this.getters.put(name, method);
 	}
 	
 	private void parseSetter(Method method, Set<String> ignore) {
 		if (method.getParameterTypes().length != 1) return;
+		if (Modifier.isStatic(method.getModifiers())) return;
 		method.setAccessible(true);
 		String name = methodName(method, ignore);
 		if (name.startsWith("!")) {
@@ -172,6 +186,7 @@ public class JsonClassData {
 			}
 			return;
 		}
+		if (this.setters.containsKey(name)) return;
 		this.setters.put(name, method);
 	}
 	
@@ -209,16 +224,20 @@ public class JsonClassData {
 		this.getters.remove(string);
 	}
 
-	public TypeUtil getHint(String name) {
-		if (getters.containsKey(name)) {
-			return TypeUtil.get(getters.get(name).getGenericReturnType());
-		} 
+	public TypeUtil getSetHint(String name) {
 		if (setters.containsKey(name)) {
 			return TypeUtil.get(setters.get(name).getGenericParameterTypes()[0]);
 		}
 		return null;
 	}
 
+	public TypeUtil getGetHint(String name) {
+		if (getters.containsKey(name)) {
+			return TypeUtil.get(getters.get(name).getGenericReturnType());
+		} 
+		return null;
+	}
+	
 	public void setValue(String name, Object nval, Object tgt) {
 		Method method = this.setters.get(name);
 		if (method == null) throw new IllegalStateException("Can't find a setter for " + name);

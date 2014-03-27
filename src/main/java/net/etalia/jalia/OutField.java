@@ -1,8 +1,11 @@
 package net.etalia.jalia;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class OutField {
 	private OutField parent = null;
@@ -93,6 +96,33 @@ public class OutField {
 	public boolean hasSubs() {
 		if (all) return true;
 		return subs != null && subs.size() > 0;
+	}
+
+	public Set<String> toStringList() {
+		Set<String> ret = new HashSet<>();
+		toStringList(ret);
+		return ret;
+	}
+	
+	public void toStringList(Set<String> set) {
+		String mfp = getFullPath();
+		if (mfp != null) set.add(mfp);
+		if (subs != null) {
+			for (OutField of : subs.values()) {
+				of.toStringList(set);
+			}
+		}
+	}
+
+	public OutField getCreateSubs(String... split) {
+		for (String sub : split) {
+			getCreateSub(sub);
+		}
+		return this;
+	}
+
+	public static OutField getRoot(String... fields) {
+		return new OutField(null).getCreateSubs(fields);
 	}
 	
 }

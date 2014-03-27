@@ -1,6 +1,7 @@
 package net.etalia.jalia;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.Map;
 
@@ -136,7 +137,9 @@ public class BeanJsonDeSer implements JsonDeSer {
 				if (!hint.isInstantiatable()) throw new IllegalStateException("No @entity in the json, and " + hint + " is not instantiatable");
 				clazz = hint.getConcrete();
 			} else {
-				if (!hint.getConcrete().isAssignableFrom(clazz)) throw new IllegalStateException("Was expecting " + hint + " or subclass, but based on @entity it's a " + clazz.getName());
+				if (hint.hasConcrete()) {
+					if (!hint.getConcrete().isAssignableFrom(clazz)) throw new IllegalStateException("Was expecting " + hint + " or subclass, but based on @entity it's a " + clazz.getName());
+				}
 			}
 		}
 		
@@ -157,11 +160,7 @@ public class BeanJsonDeSer implements JsonDeSer {
 		}
 		if (pre == null) {
 			// Try to instantiate it
-			try {
-				pre = clazz.newInstance();
-			} catch (Exception e) {
-				throw new IllegalStateException("Cannot instantiate a " + clazz, e);
-			}
+			pre = TypeUtil.get(clazz).newInstance();
 		}
 		
 		// Now we should have a pre to work on
@@ -174,7 +173,8 @@ public class BeanJsonDeSer implements JsonDeSer {
 			} catch (Exception e) {
 				// TODO log this?
 			}
-			TypeUtil hintval = cd.getHint(name);
+			TypeUtil hintval = cd.getSetHint(name);
+			if (hintval == null) hintval = cd.getGetHint(name);
 			Object nval = context.getMapper().readValue(context, preval, hintval);
 			try {
 				cd.setValue(name, nval, pre);

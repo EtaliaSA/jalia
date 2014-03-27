@@ -1,5 +1,6 @@
 package net.etalia.jalia;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -43,6 +44,15 @@ public class TypeUtil {
 			concrete = (Class<?>)((WildcardType) type).getUpperBounds()[0];
 		} else throw new IllegalArgumentException("Can't parse type " + type);		
 		return concrete;
+	}
+	
+	public boolean hasConcrete() {
+		try {
+			getConcrete();
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 	
 	private Type resolveType(Type type) {
@@ -92,7 +102,41 @@ public class TypeUtil {
 	}
 	
 	public boolean isInstantiatable() {
-		return !getConcrete().isAnnotation() && !getConcrete().isArray() && !getConcrete().isEnum() && !getConcrete().isInterface() && !getConcrete().isPrimitive() && !getConcrete().isSynthetic();
+		if (!hasConcrete()) return false;
+		Class<?> concrete = getConcrete();
+		if (concrete == null) return false;
+		if (concrete.isAnnotation() || concrete.isArray() || concrete.isEnum() || concrete.isInterface() || concrete.isPrimitive() || concrete.isSynthetic()) return false;
+		try {
+			Constructor<?> constructor = concrete.getConstructor();
+			return constructor != null;
+		} catch (NoSuchMethodException e) {			
+		}
+		try {
+			Constructor<?> constructor = concrete.getDeclaredConstructor();
+			return constructor != null;
+		} catch (NoSuchMethodException e) {			
+		}
+		return false;
+	}
+	
+	public <T> T newInstance() {
+		T ret = null;
+		Class<T> clazz = (Class<T>) getConcrete();
+		try {
+			ret =clazz.newInstance();
+		} catch (Exception e) {
+			try {
+				Constructor<T> con = clazz.getDeclaredConstructor();
+				con.setAccessible(true);
+				ret = con.newInstance();
+			} catch (NoSuchMethodException nsm) {
+			} catch (Exception e2) {
+				e = e2;
+			}
+			if (ret == null)
+				throw new IllegalStateException("Cannot instantiate a " + clazz, e);
+		}
+		return ret;
 	}
 
 	public boolean isNullable() {
@@ -128,7 +172,13 @@ public class TypeUtil {
 	}
 
 	public boolean isArray() {
-		return getConcrete().isArray();
+		Class<?> conc = null;
+		try {
+			conc = getConcrete();
+		} catch (Exception e) {
+			return false;
+		}
+		return conc.isArray();
 	}
 	
 	public TypeUtil getArrayType() {
@@ -142,6 +192,11 @@ public class TypeUtil {
 		public TypeUtil type() {
 			return get(this.getClass()).findReturnTypeOf("mockGet");
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return "TypeUtil[" + this.type + "]";
 	}
 
 }
