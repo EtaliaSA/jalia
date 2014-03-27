@@ -21,11 +21,14 @@ public class BeanJsonDeSer implements JsonDeSer {
 	public int handlesDeserialization(JsonContext context, TypeUtil hint) {
 		JsonReader la = context.getInput().lookAhead();
 		try {
-			if (la.peek() != JsonToken.BEGIN_OBJECT) return -1;
-			la.beginObject();
-			while (la.hasNext()) {
-				if (la.nextName().equals("@entity")) return 10;
-				la.skipValue();
+			if (la.peek() != JsonToken.STRING) { 
+				if (la.peek() != JsonToken.BEGIN_OBJECT) return -1;
+				la.beginObject();
+				while (la.hasNext()) {
+					// TODO check is the @entity can be identified by the factory or not, before saying we can deserialize it!
+					if (la.nextName().equals("@entity")) return 10;
+					la.skipValue();
+				}
 			}
 		} catch (IOException e) {
 			// TODO what to do?
@@ -50,12 +53,18 @@ public class BeanJsonDeSer implements JsonDeSer {
 		ObjectMapper mapper = context.getMapper();
 		JsonClassData cd = JsonClassData.get(obj.getClass(), context);
 		output.beginObject();
+		boolean sentEntity = false;
 		if (mapper.getEntityNameProvider() != null) {
 			String entityName = mapper.getEntityNameProvider().getEntityName(obj.getClass());
 			if (entityName != null) {
 				output.name("@entity");
 				output.value(entityName);
+				sentEntity = true;
 			}
+		}
+		if (!sentEntity) {
+			output.name("@entity");
+			output.value(obj.getClass().getSimpleName());
 		}
 		if (mapper.getEntityFactory() != null) {
 			String id = mapper.getEntityFactory().getId(obj);
@@ -79,24 +88,31 @@ public class BeanJsonDeSer implements JsonDeSer {
 		// Search for @entity and id
 		String id = null;
 		String entity = null;
+		boolean embedded = false;
 		
 		JsonReader input = context.getInput();
-		input.beginObject();
-		
-		JsonReader la = input.lookAhead();
-		while (la.hasNext()) {
-			String name = la.nextName();
-			if (name.equals("@entity")) {
-				entity = la.nextString();
-			} else if (name.equals("id")) {
-				id = la.nextString();
-			} else {
-				la.skipValue();
+		if (input.peek() == JsonToken.STRING) {
+			// Embedded object
+			id = input.nextString();
+			embedded = true;
+		} else {
+			input.beginObject();
+			
+			JsonReader la = input.lookAhead();
+			while (la.hasNext()) {
+				String name = la.nextName();
+				if (name.equals("@entity")) {
+					entity = la.nextString();
+				} else if (name.equals("id")) {
+					id = la.nextString();
+				} else {
+					la.skipValue();
+				}
+				// TODO if we can take for granted that the order is always id->@entity we could stop before, cause entities may not have an id
+				if (entity != null && id != null) break;
 			}
-			// TODO if we can take for granted that the order is always id->@entity we could stop before, cause entities may not have an id
-			if (entity != null && id != null) break;
+			la.close();
 		}
-		la.close();
 		
 		Class<?> clazz = null;
 		// If we have an @entity, try to resolve it
@@ -110,7 +126,7 @@ public class BeanJsonDeSer implements JsonDeSer {
 					clazz = Class.forName(entity);
 				} catch (Exception e) {}
 			}
-			if (clazz == null) throw new IllegalStateException("Cannot resolve @entity:" + entity);
+			//if (clazz == null) throw new IllegalStateException("Cannot resolve @entity:" + entity);
 		}
 		
 		// Try reusing pre
@@ -151,12 +167,16 @@ public class BeanJsonDeSer implements JsonDeSer {
 				pre = null;
 			}
 		}
-		if (pre == null) {
+		if (pre == null && clazz != null) {
 			// Try to obtain it from factory
 			EntityFactory factory = context.getMapper().getEntityFactory();
 			if (factory != null) {
 				pre = factory.buildEntity(clazz, id);
 			}
+		}
+		if (embedded) {
+			if (pre == null) throw new IllegalStateException("Cannot deserialize embedded object " + id + " " + hint);
+			return pre;
 		}
 		if (pre == null) {
 			// Try to instantiate it

@@ -20,7 +20,7 @@ public class JaliaHttpMessageConverter extends AbstractHttpMessageConverter<Obje
 		private ObjectMapper mapper = new ObjectMapper();
 		
 		public JaliaHttpMessageConverter() {
-			super(new MediaType("application", "authcheck", DEFAULT_CHARSET));		
+			super(new MediaType("application", "json", DEFAULT_CHARSET));		
 		}
 		
 		public void setObjectMapper(ObjectMapper mapper) {

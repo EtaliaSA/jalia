@@ -236,6 +236,7 @@ public class ObjectMapperSerializeTest {
 		mapper.init();
 
 		DummyPerson person = makePerson();
+		person.initTags("tag1","tag2");
 		
 		String json = mapper.writeValueAsString(person, null);
 		System.out.println(json);
@@ -257,6 +258,10 @@ public class ObjectMapperSerializeTest {
 		assertThat(json, containsString("\"identifier\":"));
 		assertThat(json, containsString("\"p1\""));
 		assertThat(json, containsString("\"a1\""));
+
+		assertThat(json, containsString("\"tags\":"));
+		assertThat(json, containsString("\"tag1\""));
+		assertThat(json, containsString("\"tag2\""));
 		
 		assertThat(json, not(containsString("\"defaultType\"")));
 		

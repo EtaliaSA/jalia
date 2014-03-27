@@ -2,9 +2,14 @@ package net.etalia.jalia;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import net.etalia.jalia.annotations.JsonIgnore;
+import net.etalia.jalia.annotations.JsonSetter;
 
 
 public class DummyPerson extends DummyEntity {
@@ -13,6 +18,10 @@ public class DummyPerson extends DummyEntity {
 	private String surname;
 	
 	private List<DummyAddress> addresses = new ArrayList<>(); 
+	private Set<String> tags = new HashSet<>();
+	
+	private Map<String,Object> extraData = null;
+	private List<String> secrets = null;
 	
 	public DummyPerson() {}
 	
@@ -40,7 +49,36 @@ public class DummyPerson extends DummyEntity {
 	public List<DummyAddress> getAddresses() {
 		return addresses;
 	}
+	
+	public Set<String> getTags() {
+		return tags;
+	}
+	
+	public DummyPerson initTags(String... tags) {
+		this.tags.addAll(Arrays.asList(tags));
+		return this;
+	}
 
+	public Map<String, Object> getExtraData() {
+		if (extraData == null) return Collections.emptyMap();
+		return Collections.unmodifiableMap(extraData);
+	}
+	
+	@JsonSetter
+	private void setExtraData(Map<String, Object> extraData) {
+		this.extraData = extraData;
+	}
+	
+	public List<String> getSecrets() {
+		if (secrets == null) return Collections.emptyList();
+		return Collections.unmodifiableList(secrets);
+	}
+	
+	@JsonSetter
+	private void setSecrets(List<String> secrets) {
+		this.secrets = secrets;
+	}
+	
 	@Override
 	public String toString() {
 		return "DummyPerson [name=" + name + ", surname=" + surname

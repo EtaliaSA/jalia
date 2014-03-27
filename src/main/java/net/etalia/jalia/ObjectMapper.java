@@ -12,8 +12,10 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,7 +28,7 @@ import net.etalia.jalia.stream.JsonWriter;
 
 public class ObjectMapper {
 
-	private Set<JsonDeSer> registeredDeSers = new HashSet<>();
+	private List<JsonDeSer> registeredDeSers = new ArrayList<>();
 	private LockHashMap<Class<?>,JsonDeSer> serializers = new LockHashMap<>();
 	private LockHashMap<TypeUtil,JsonDeSer> deserializers = new LockHashMap<>();
 	private EntityFactory entityProvider = null;
@@ -75,6 +77,9 @@ public class ObjectMapper {
 	}
 	public void registerDeSer(Collection<? extends JsonDeSer> dss) {
 		registeredDeSers.addAll(dss);
+	}
+	public List<JsonDeSer> getRegisteredDeSers() {
+		return registeredDeSers;
 	}
 	
 	@PostConstruct
@@ -304,7 +309,10 @@ public class ObjectMapper {
 	public <T> T readValue(byte[] json, Class<T> clazz) {
 		return readValue(json, TypeUtil.get(clazz));
 	}
-	
+
+	public <T> T readValue(byte[] json) {
+		return readValue(json, (TypeUtil)null);
+	}	
 	public <T> T readValue(String json) {
 		return readValue(json, (TypeUtil)null);
 	}

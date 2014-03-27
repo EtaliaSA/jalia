@@ -71,18 +71,25 @@ public class MapJsonDeSer implements JsonDeSer {
 					e.printStackTrace();
 				}
 			}
-			if (act == null) act = new HashMap<String,Object>();
+			if (act == null) act = new HashMap<>();
 		}
 		
 		JsonReader input = context.getInput();
 		input.beginObject();
 		Set<String> keys = new HashSet<String>();
+		Map<String,Object> read = act;
 		while (input.hasNext()) {
 			String name = input.nextName();
 			keys.add(name);
-			Object preval = act.get(name);
+			Object preval = read.get(name);
 			Object val = context.getMapper().readValue(context, preval, inner);
-			act.put(name, val);
+			try {
+				act.put(name, val);
+			} catch (UnsupportedOperationException e) {
+				// Could happen because or a read only map, try using a normal map
+				act = new HashMap<>();
+				act.put(name, val);
+			}
 		}
 		for (Iterator<String> iter = act.keySet().iterator(); iter.hasNext();) {
 			if (!keys.contains(iter.next())) iter.remove();

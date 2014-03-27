@@ -1,17 +1,20 @@
 package net.etalia.jalia;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertThat;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import net.etalia.jalia.ObjectMapper;
 import net.etalia.jalia.TypeUtil;
@@ -169,6 +172,10 @@ public class ObjectMapperDeserializeTest {
 							"'type':'EMAIL'," +
 							"'address':'m.rossi@gmail.com'" +
 						"}"+
+					"]," +
+					"'tags':[" +
+						"'tag1'," +
+						"'tag2'" +
 					"]" +
 				"}";
 		
@@ -190,6 +197,9 @@ public class ObjectMapperDeserializeTest {
 		
 		assertThat(person.getAddresses().get(0).getType(), equalTo(AddressType.EMAIL));
 		assertThat(person.getAddresses().get(0).getAddress(), equalTo("m.rossi@gmail.com"));
+		
+		assertThat(person.getTags(), hasSize(2));
+		assertThat(person.getTags(), containsInAnyOrder("tag1","tag2"));
 	}
 	
 	@Test
@@ -322,6 +332,41 @@ public class ObjectMapperDeserializeTest {
 		assertThat(prelist.get(1), sameInstance(a1));
 		assertThat(prelist.get(2), sameInstance(a2));
 	}
+
+	@Test
+	public void differentEntitiesInSet() throws Exception {
+		DummyPerson person = new DummyPerson("p1","Simone","Gianni");
+		person.initTags("tag1","tag2");
+		Set<String> preset = person.getTags();
+		
+		DummyEntityProvider provider = new DummyEntityProvider();
+		provider.addToDb(person);
+		
+		ObjectMapper om = new ObjectMapper();
+		om.setEntityNameProvider(provider);
+		om.setEntityFactory(provider);
+		om.init();
+		
+		String json = 
+				"{" +
+					"'@entity':'Person'," +
+					"'id':'p1'," +
+					"'tags':[" +
+						"'tag3'," +
+						"'tag1'," +
+						"'tag2'" +
+					"]" +
+				"}";
+		
+		Object rpersonObj = om.readValue(json.replace("'", "\""));
+		DummyPerson rperson = (DummyPerson) rpersonObj;
+		
+		assertThat(rperson, sameInstance(person));
+		assertThat(rperson.getTags(), sameInstance(preset));
+		
+		assertThat(preset, hasSize(3));
+		assertThat(preset, containsInAnyOrder("tag1","tag2","tag3"));
+	}
 	
 	@Test
 	public void lessEntitiesInList() throws Exception {
@@ -371,6 +416,98 @@ public class ObjectMapperDeserializeTest {
 		assertThat(prelist.get(0).getIdentifier(), equalTo("a4"));
 		assertThat(prelist.get(1), sameInstance(a1));
 	}
+
+	@Test
+	public void lessEntitiesInSet() throws Exception {
+		DummyPerson person = new DummyPerson("p1","Simone","Gianni");
+		person.initTags("tag1","tag2","tag3");
+		Set<String> preset = person.getTags();
+		
+		DummyEntityProvider provider = new DummyEntityProvider();
+		provider.addToDb(person);
+		
+		ObjectMapper om = new ObjectMapper();
+		om.setEntityNameProvider(provider);
+		om.setEntityFactory(provider);
+		om.init();
+		
+		String json = 
+				"{" +
+					"'@entity':'Person'," +
+					"'id':'p1'," +
+					"'tags':[" +
+						"'tag1',"+
+						"'tag4'"+
+					"]" +
+				"}";
+		
+		Object rpersonObj = om.readValue(json.replace("'", "\""));
+		DummyPerson rperson = (DummyPerson) rpersonObj;
+		
+		assertThat(rperson, sameInstance(person));
+		assertThat(rperson.getTags(), sameInstance(preset));
+		
+		assertThat(preset, hasSize(2));
+		assertThat(preset, containsInAnyOrder("tag1","tag4"));
+	}
 	
+	@Test
+	public void embeddedEntities() throws Exception {
+		DummyAddress a1 = new DummyAddress("a1",AddressType.EMAIL, "simoneg@apache.org");
+		DummyAddress a2 = new DummyAddress("a2",AddressType.HOME, "Via Prove, 21");
+		DummyAddress a3 = new DummyAddress("a3",AddressType.OFFICE, "Via del Lavoro, 21");
+		
+		DummyEntityProvider provider = new DummyEntityProvider();
+		provider.addToDb(a1,a2,a3);
+		
+		ObjectMapper om = new ObjectMapper();
+		om.setEntityNameProvider(provider);
+		om.setEntityFactory(provider);
+		om.init();
+		
+		String json = 
+				"{" +
+					"'@entity':'Person'," +
+					"'id':'p1'," +
+					"'addresses':[" +
+						"\"a1\",\"a2\"" +
+					"]" +
+				"}";
+		
+		Object rpersonObj = om.readValue(json.replace("'", "\""));
+		DummyPerson rperson = (DummyPerson) rpersonObj;
+		List<DummyAddress> prelist = rperson.getAddresses();
+		assertThat(prelist, hasSize(2));
+		assertThat(prelist.get(0).getIdentifier(), equalTo("a1"));
+		assertThat(prelist.get(0), sameInstance(a1));
+		assertThat(prelist.get(1).getIdentifier(), equalTo("a2"));
+		assertThat(prelist.get(1), sameInstance(a2));
+	}
+	
+	@Test
+	public void unmodifiables() throws Exception {
+		DummyEntityProvider provider = new DummyEntityProvider();
+		ObjectMapper om = new ObjectMapper();
+		om.setEntityNameProvider(provider);
+		om.setEntityFactory(provider);
+		om.init();
+		
+		String json = 
+				"{" +
+					"'@entity':'Person'," +
+					"'id':'p1'," +
+					"'secrets':[" +
+						"'s1','s2'" +
+					"]," +
+					"'extraData':{" +
+						"'extra1':'extra'" +
+					"}" +
+				"}";
+		
+		Object rpersonObj = om.readValue(json.replace("'", "\""));
+		DummyPerson rperson = (DummyPerson) rpersonObj;
+		assertThat(rperson.getExtraData(), hasEntry("extra1", (Object)"extra"));
+		assertThat(rperson.getSecrets(), contains("s1","s2"));
+	}
 	
 }

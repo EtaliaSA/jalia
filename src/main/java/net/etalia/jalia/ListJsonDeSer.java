@@ -5,7 +5,10 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -63,14 +66,14 @@ public class ListJsonDeSer implements JsonDeSer {
 
 	@Override
 	public Object deserialize(JsonContext context, Object pre, TypeUtil hint) throws IOException {
-		List<Object> act = null;
+		Collection<Object> act = null;
 		if (pre != null && pre.getClass().isArray()) {
 			act = new ArrayList<Object>();
 			for (int i = 0; i < Array.getLength(pre); i++) {
 				act.add(Array.get(pre, i));
 			}
 		} else {
-			act = (List<Object>) pre;
+			act = (Collection<Object>) pre;
 		}
 		TypeUtil inner = null;
 		if (act != null) {
@@ -114,23 +117,54 @@ public class ListJsonDeSer implements JsonDeSer {
 		input.beginArray();
 		{
 			int i = 0;
+			List<Object> lst = null;
+			if (act instanceof List) {
+				lst = (List<Object>)act;
+			} else {
+				lst = new ArrayList<>(act);
+			}
+			List<Object> found = new ArrayList<>();
 			while (input.hasNext()) {
 				Object preval = null;
-				if (i < act.size()) preval = act.get(i);
+				if (lst != null) {
+					if (i < lst.size()) preval = lst.get(i);
+				}
 				Object val = context.getMapper().readValue(context, preval, inner);
-				while (i >= act.size()) act.add(null);
-				act.set(i, val);
+				found.add(val);
+				try {
+					if (act instanceof List) {
+						while (i >= act.size()) act.add(null);
+						((List<Object>)act).set(i, val);
+					} else {
+						act.add(val);
+					}
+				} catch (UnsupportedOperationException e) {
+					// Could happen for unmodifiable collections
+					if (act instanceof List) {
+						act = new ArrayList<>();
+						while (i >= act.size()) act.add(null);
+						((List<Object>)act).set(i, val);
+					} else {
+						act = new HashSet<>();
+						act.add(val);
+					}
+				}
 				i++;
 			}
-			if (act.size() > i) act.remove(i);
+			if (act instanceof List) {
+				while (act.size() > i) ((List<Object>)act).remove(i);
+			} else {
+				act.retainAll(found);
+			}
 		}
 		input.endArray();
 		if ((pre != null && pre.getClass().isArray()) || (hint != null && hint.isArray())) {
 			if (pre == null || Array.getLength(pre) != act.size()) {
 				pre = Array.newInstance(inner.getConcrete(), act.size());
 			}
+			Iterator<Object> iter = act.iterator();
 			for (int i = 0; i < Array.getLength(pre); i++) {
-				Array.set(pre, i, act.get(i));
+				Array.set(pre, i, iter.next());
 			}
 			return pre;
 		}

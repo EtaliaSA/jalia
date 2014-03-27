@@ -17,6 +17,7 @@ public class NativeJsonDeSer implements JsonDeSer {
 		if (Boolean.class.isAssignableFrom(clazz)) return 10;
 		if (CharSequence.class.isAssignableFrom(clazz)) return 10;
 		if (Enum.class.isAssignableFrom(clazz)) return 10;
+		if (Class.class.isAssignableFrom(clazz)) return 10;
 		return -1;
 	}
 	
@@ -47,6 +48,8 @@ public class NativeJsonDeSer implements JsonDeSer {
 			output.value(((CharSequence)obj).toString());
 		} else if (obj instanceof Enum) {
 			output.value(((Enum)obj).name());
+		} else if (obj instanceof Class) {
+			output.value(((Class)obj).getName());
 		} else {
 			throw new IllegalStateException("Cannot serialize " + obj);
 		}
@@ -70,6 +73,12 @@ public class NativeJsonDeSer implements JsonDeSer {
 			if (hint != null) {
 				if (hint.isEnum()) {
 					ret = hint.getEnumValue((String)ret);
+				} else if (hint.hasConcrete() && Class.class.isAssignableFrom(hint.getConcrete())) {
+					try {
+						ret = Class.forName((String)ret);
+					} catch (ClassNotFoundException e) {
+						throw new IllegalStateException("Cannot deserialize a class", e);
+					}
 				} else if (!hint.isCharSequence()) {
 					throw new IllegalStateException("Found a string, but was expecting " + hint);
 				}
