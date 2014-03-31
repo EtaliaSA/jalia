@@ -18,6 +18,7 @@ import net.etalia.utils.LockHashMap;
 
 public class JsonClassData {
 
+	// TODO move this cache to a factory
 	private static LockHashMap<Class<?>, JsonClassData> cache = new LockHashMap<Class<?>, JsonClassData>();
 	
 	public static JsonClassData get(Class<?> clazz, JsonContext context) {
@@ -52,22 +53,30 @@ public class JsonClassData {
 		}
 	}
 	
-	private static final Set<String> ALL_SET = new HashSet<>();
+	protected static final Set<String> ALL_SET = new HashSet<>();
 	
 	static {
 		ALL_SET.add("*");
 	}
 	
-	private Class<?> clazz;
+	protected Class<?> clazz;
 	
-	private Set<String> defaults = new HashSet<>();
+	protected Set<String> defaults = new HashSet<>();
 	
-	private Map<String,Method> getters = new HashMap<>();
-	private Map<String,Method> setters = new HashMap<>();
+	protected Map<String,Method> getters = new HashMap<>();
+	protected Map<String,Method> setters = new HashMap<>();
 
-	private TypeUtil typeUtil = null;
+	protected TypeUtil typeUtil = null;
 	
-	private JsonClassData(Class<?> clazz) {
+	protected JsonClassData(JsonClassData other) {
+		this.clazz = other.clazz;
+		this.typeUtil = other.typeUtil;
+		this.defaults.addAll(other.defaults);
+		this.getters.putAll(other.getters);
+		this.setters.putAll(other.setters);
+	}
+	
+	protected JsonClassData(Class<?> clazz) {
 		this.clazz = clazz;
 		parse(clazz);
 	}

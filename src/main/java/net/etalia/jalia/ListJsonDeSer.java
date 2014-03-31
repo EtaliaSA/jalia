@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import net.etalia.jalia.stream.JsonReader;
 import net.etalia.jalia.stream.JsonToken;
@@ -82,7 +83,11 @@ public class ListJsonDeSer implements JsonDeSer {
 				inner = pretype.getArrayType();
 			} else {
 				try {
-					inner = pretype.findReturnTypeOf("get", Integer.TYPE);
+					if (List.class.isAssignableFrom(pretype.getConcrete())) {
+						inner = pretype.findReturnTypeOf("get", Integer.TYPE);
+					} else if (Set.class.isAssignableFrom(pretype.getConcrete())) {
+						inner = pretype.findParameterOf("add", 0);
+					}
 				} catch (Exception e) {
 					// TODO log this
 					e.printStackTrace();
@@ -103,7 +108,11 @@ public class ListJsonDeSer implements JsonDeSer {
 					inner = hint.getArrayType();
 				} else {
 					try {
-						inner = hint.findReturnTypeOf("get", Integer.TYPE);
+						if (List.class.isAssignableFrom(hint.getConcrete())) {
+							inner = hint.findReturnTypeOf("get", Integer.TYPE);
+						} else if (Set.class.isAssignableFrom(hint.getConcrete())) {
+							inner = hint.findParameterOf("add", 0);
+						}
 					} catch (Exception e) {
 						// TODO log this
 						e.printStackTrace();

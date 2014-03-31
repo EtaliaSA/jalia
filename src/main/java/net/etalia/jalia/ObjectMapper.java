@@ -56,6 +56,7 @@ public class ObjectMapper {
 		return sendEmpty;
 	}
 	
+	// TODO support more than one factory or cascading factories, and/or a factory that self configures based on typeinfo annotations
 	public ObjectMapper setEntityFactory(EntityFactory entityProvider) {
 		this.entityProvider = entityProvider;
 		return this;
