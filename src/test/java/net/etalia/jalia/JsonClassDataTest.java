@@ -18,17 +18,14 @@ import org.junit.Test;
 
 public class JsonClassDataTest {
 
-	@Before
-	public void clearCache() {
-		JsonClassData.clearCache();
-	}
-	
 	@Test
 	public void gettables() throws Exception {
-		JsonClassData jcd = JsonClassData.get(DummyPerson.class, null);
+		JsonClassDataFactory factory = new JsonClassDataFactoryImpl();
+		
+		JsonClassData jcd = factory.getClassData(DummyPerson.class, null);
 		assertThat(jcd, notNullValue());
 		
-		JsonClassData jcd2 = JsonClassData.get(DummyPerson.class, null);
+		JsonClassData jcd2 = factory.getClassData(DummyPerson.class, null);
 		assertThat(jcd2, sameInstance(jcd));
 		
 		assertThat(jcd.getGettables(), notNullValue());
@@ -44,7 +41,9 @@ public class JsonClassDataTest {
 	
 	@Test
 	public void getting() throws Exception {
-		JsonClassData jcd = JsonClassData.get(DummyPerson.class, null);
+		JsonClassDataFactory factory = new JsonClassDataFactoryImpl();
+		
+		JsonClassData jcd = factory.getClassData(DummyPerson.class, null);
 
 		DummyPerson person = new DummyPerson();
 		person.setName("Simone");
@@ -60,10 +59,12 @@ public class JsonClassDataTest {
 	@Test
 	public void altered() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
-		mapper.setEntityFactory(new DummyEntityProvider());
+		DummyEntityProvider prov = new DummyEntityProvider();
+		mapper.setEntityFactory(prov);
+		mapper.setClassDataFactory(prov);
 		JsonContext ctx = new JsonContext(mapper);
 		
-		JsonClassData jcd = JsonClassData.get(DummyPerson.class, ctx);
+		JsonClassData jcd = mapper.getClassDataFactory().getClassData(DummyPerson.class, ctx);
 		assertThat(jcd, notNullValue());
 		
 		assertThat(jcd.getGettables(), notNullValue());
@@ -78,7 +79,9 @@ public class JsonClassDataTest {
 	
 	@Test
 	public void settings() throws Exception {
-		JsonClassData jcd = JsonClassData.get(DummyPerson.class, null);
+		JsonClassDataFactory factory = new JsonClassDataFactoryImpl();		
+		
+		JsonClassData jcd = factory.getClassData(DummyPerson.class, null);
 
 		DummyPerson person = new DummyPerson();
 		jcd.setValue("name", "Simone", person);
@@ -88,7 +91,9 @@ public class JsonClassDataTest {
 
 	@Test
 	public void annotations() throws Exception {
-		JsonClassData jcd = JsonClassData.get(DummyAnnotations.class, null);
+		JsonClassDataFactory factory = new JsonClassDataFactoryImpl();		
+		
+		JsonClassData jcd = factory.getClassData(DummyAnnotations.class, null);
 		
 		assertThat(jcd.getGettables(), containsInAnyOrder("both","getOnly","getOnlyByGetter","unusual","alternative"));
 		assertThat(jcd.getSettables(), containsInAnyOrder("both","setOnly","setOnlyBySetter","unusual","alternative"));

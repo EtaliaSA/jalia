@@ -31,8 +31,10 @@ public class ObjectMapper {
 	private List<JsonDeSer> registeredDeSers = new ArrayList<>();
 	private LockHashMap<Class<?>,JsonDeSer> serializers = new LockHashMap<>();
 	private LockHashMap<TypeUtil,JsonDeSer> deserializers = new LockHashMap<>();
+	
 	private EntityFactory entityProvider = null;
 	private EntityNameProvider entityNameProvider = null;
+	private JsonClassDataFactory classDataFactory = new JsonClassDataFactoryImpl();
 	
 	private boolean prettyPrint = false;
 	private boolean sendNulls = false;
@@ -71,6 +73,13 @@ public class ObjectMapper {
 	}
 	public EntityNameProvider getEntityNameProvider() {
 		return entityNameProvider;
+	}
+	
+	public void setClassDataFactory(JsonClassDataFactory classDataFactory) {
+		this.classDataFactory = classDataFactory;
+	}
+	public JsonClassDataFactory getClassDataFactory() {
+		return classDataFactory;
 	}
 	
 	public void registerDeSer(JsonDeSer ds) {

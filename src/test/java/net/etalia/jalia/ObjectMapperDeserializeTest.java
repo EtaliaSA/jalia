@@ -221,6 +221,7 @@ public class ObjectMapperDeserializeTest {
 		provider.addToDb(new DummyPerson("p1", "Simone","Gianni"));
 		om.setEntityNameProvider(provider);
 		om.setEntityFactory(provider);
+		om.setClassDataFactory(provider);		
 		om.init();
 		Object val = om.readValue(json.replace("'", "\""));
 		
@@ -295,6 +296,7 @@ public class ObjectMapperDeserializeTest {
 		ObjectMapper om = new ObjectMapper();
 		om.setEntityNameProvider(provider);
 		om.setEntityFactory(provider);
+		om.setClassDataFactory(provider);
 		om.init();
 		
 		String json = 
@@ -345,6 +347,7 @@ public class ObjectMapperDeserializeTest {
 		ObjectMapper om = new ObjectMapper();
 		om.setEntityNameProvider(provider);
 		om.setEntityFactory(provider);
+		om.setClassDataFactory(provider);
 		om.init();
 		
 		String json = 
@@ -383,6 +386,7 @@ public class ObjectMapperDeserializeTest {
 		ObjectMapper om = new ObjectMapper();
 		om.setEntityNameProvider(provider);
 		om.setEntityFactory(provider);
+		om.setClassDataFactory(provider);		
 		om.init();
 		
 		String json = 
@@ -429,6 +433,7 @@ public class ObjectMapperDeserializeTest {
 		ObjectMapper om = new ObjectMapper();
 		om.setEntityNameProvider(provider);
 		om.setEntityFactory(provider);
+		om.setClassDataFactory(provider);		
 		om.init();
 		
 		String json = 
@@ -463,6 +468,7 @@ public class ObjectMapperDeserializeTest {
 		ObjectMapper om = new ObjectMapper();
 		om.setEntityNameProvider(provider);
 		om.setEntityFactory(provider);
+		om.setClassDataFactory(provider);		
 		om.init();
 		
 		String json = 
@@ -490,6 +496,7 @@ public class ObjectMapperDeserializeTest {
 		ObjectMapper om = new ObjectMapper();
 		om.setEntityNameProvider(provider);
 		om.setEntityFactory(provider);
+		om.setClassDataFactory(provider);		
 		om.init();
 		
 		String json = 

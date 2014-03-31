@@ -51,7 +51,12 @@ public class BeanJsonDeSer implements JsonDeSer {
 	public void serialize(Object obj, JsonContext context) throws IOException {
 		JsonWriter output = context.getOutput();
 		ObjectMapper mapper = context.getMapper();
-		JsonClassData cd = JsonClassData.get(obj.getClass(), context);
+		JsonClassData cd = context.getMapper().getClassDataFactory().getClassData(obj.getClass(), context);
+		obj = cd.prepare(obj, true);
+		if (obj == null) {
+			output.nullValue();
+			return;
+		}
 		output.beginObject();
 		boolean sentEntity = false;
 		if (mapper.getEntityNameProvider() != null) {
@@ -81,6 +86,7 @@ public class BeanJsonDeSer implements JsonDeSer {
 			}
 		}
 		output.endObject();
+		obj = cd.finish(obj, true);		
 	}
 
 	@Override
@@ -184,7 +190,8 @@ public class BeanJsonDeSer implements JsonDeSer {
 		}
 		
 		// Now we should have a pre to work on
-		JsonClassData cd = JsonClassData.get(pre.getClass(), context);
+		JsonClassData cd = context.getMapper().getClassDataFactory().getClassData(pre.getClass(), context);
+		pre = cd.prepare(pre, false);
 		while (input.hasNext()) {
 			String name = input.nextName();
 			Object preval = null;
@@ -203,6 +210,8 @@ public class BeanJsonDeSer implements JsonDeSer {
 			}
 		}
 		input.endObject();
+
+		pre = cd.finish(pre, false);
 		
 		return pre;
 	}

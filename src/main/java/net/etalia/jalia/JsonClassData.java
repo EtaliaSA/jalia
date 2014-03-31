@@ -18,41 +18,6 @@ import net.etalia.utils.LockHashMap;
 
 public class JsonClassData {
 
-	// TODO move this cache to a factory
-	private static LockHashMap<Class<?>, JsonClassData> cache = new LockHashMap<Class<?>, JsonClassData>();
-	
-	public static JsonClassData get(Class<?> clazz, JsonContext context) {
-		cache.lockRead();
-		try {
-			JsonClassData ret = cache.get(clazz);
-			if (ret != null) return ret;
-		} finally {
-			cache.unlockRead();
-		}
-		// TODO this could cause class data intialization twice, making it behave as a concurrent hashmap
-		cache.lockWrite();
-		try {
-			JsonClassData ret = cache.get(clazz);
-			if (ret != null) return ret;
-			ret = new JsonClassData(clazz);
-			if (context != null && context.getMapper().getEntityFactory() != null)
-				ret = context.getMapper().getEntityFactory().alterClassData(ret);
-			cache.put(clazz, ret);
-			return ret;
-		} finally {
-			cache.unlockWrite();
-		}
-	}
-	
-	static void clearCache() {
-		cache.lockWrite();
-		try {
-			cache.clear();
-		} finally {
-			cache.unlockWrite();
-		}
-	}
-	
 	protected static final Set<String> ALL_SET = new HashSet<>();
 	
 	static {
@@ -255,6 +220,14 @@ public class JsonClassData {
 		} catch (Throwable e) {
 			throw new IllegalStateException("Error invoking " + method, e);
 		}
+	}
+	
+	public Object prepare(Object obj, boolean serializing) {
+		return obj;
+	}
+	
+	public Object finish(Object obj, boolean serializing) {
+		return obj;
 	}
 	
 }

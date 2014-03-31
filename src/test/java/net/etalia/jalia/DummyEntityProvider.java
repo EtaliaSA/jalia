@@ -8,9 +8,11 @@ import net.etalia.jalia.EntityNameProvider;
 import net.etalia.jalia.JsonClassData;
 import net.etalia.jalia.DummyAddress.AddressType;
 
-public class DummyEntityProvider implements EntityFactory, EntityNameProvider {
+public class DummyEntityProvider implements EntityFactory, EntityNameProvider, JsonClassDataFactory {
 
 	private Map<String, DummyEntity> db = new HashMap<>();
+	
+	private JsonClassDataFactory classFactory = new JsonClassDataFactoryImpl();
 	
 	public void addToDb(DummyEntity... entities) {
 		for (DummyEntity de : entities) {
@@ -20,8 +22,9 @@ public class DummyEntityProvider implements EntityFactory, EntityNameProvider {
 	}
 	
 	@Override
-	public JsonClassData alterClassData(JsonClassData jcd) {
-		if (DummyEntity.class.isAssignableFrom(jcd.getTargetClass())) {
+	public JsonClassData getClassData(Class<?> clazz, JsonContext context) {
+		JsonClassData jcd = classFactory.getClassData(clazz, context);
+		if (DummyEntity.class.isAssignableFrom(clazz)) {
 			jcd.ignoreSetter("identifier");
 			jcd.ignoreGetter("identifier");
 		}

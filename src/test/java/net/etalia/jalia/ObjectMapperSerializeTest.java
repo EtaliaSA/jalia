@@ -26,11 +26,6 @@ public class ObjectMapperSerializeTest {
 		VAL2
 	}
 
-	@Before
-	public void clearCache() {
-		JsonClassData.clearCache();
-	}
-	
 	@Test
 	public void simpleMap() {
 		ObjectMapper mapper = new ObjectMapper();
@@ -356,6 +351,7 @@ public class ObjectMapperSerializeTest {
 		DummyEntityProvider provider = new DummyEntityProvider();
 		mapper.setEntityNameProvider(provider);
 		mapper.setEntityFactory(provider);
+		mapper.setClassDataFactory(provider);		
 		mapper.init();
 
 		DummyPerson person = makePerson();
