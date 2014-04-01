@@ -289,6 +289,38 @@ public class ObjectMapperSerializeTest {
 		String json = om.writeValueAsString(person);
 		assertThat(json, not(containsString("\"addresses\":")));
 	}
+	
+	@Test
+	public void objectLoop() throws Exception {
+		DummyPerson person1 = new DummyPerson();
+		DummyPerson person2 = new DummyPerson();
+		
+		person1.setIdentifier("p1");
+		person2.setIdentifier("p2");
+		
+		person1.getFriends().add(person2);
+		person2.getFriends().add(person1);
+		
+		ObjectMapper om = new ObjectMapper();
+		DummyEntityProvider prov = new DummyEntityProvider();
+		om.setEntityNameProvider(prov);
+		om.setEntityFactory(prov);
+		om.setClassDataFactory(prov);
+		
+		String json = null;
+		try {
+			json = om.writeValueAsString(person1);
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail(t.getClass().getName() + " : " + t.getMessage());
+		}
+		
+		System.out.println(json);
+		
+		assertThat(json,containsString("p1"));
+		assertThat(json,containsString("p2"));
+		assertThat(json,containsString("[\"p1\"]"));
+	}
 
 	@Test
 	public void objectWithOutFields() throws Exception {

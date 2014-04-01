@@ -68,5 +68,15 @@ public class DummyEntityProvider implements EntityFactory, EntityNameProvider, J
 		ret.setIdentifier(id);
 		return ret;
 	}
+
+	@Override
+	public Object prepare(Object obj, boolean serializing) {
+		return obj;
+	}
+
+	@Override
+	public Object finish(Object obj, boolean serializing) {
+		return obj;
+	}
 	
 }

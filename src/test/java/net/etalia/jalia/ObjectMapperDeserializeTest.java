@@ -42,7 +42,7 @@ public class ObjectMapperDeserializeTest {
 		
 		Map<String,Object> map = (Map<String, Object>) ret;
 		assertThat(map, hasEntry("testString", (Object)"string"));
-		assertThat(map, hasEntry("testInt", (Object)1.0d));
+		assertThat(map, hasEntry("testInt", (Object)1));
 		assertThat(map, hasEntry("testBoolean", (Object)true));
 		
 		Object subMapObj = map.get("subMap");

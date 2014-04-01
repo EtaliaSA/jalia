@@ -24,6 +24,9 @@ public class DummyAnnotations {
 	
 	private String alternative;
 	
+	private boolean natBoolean;
+	private Boolean objBoolean;
+	
 	public String getBoth() {
 		return both;
 	}
@@ -115,6 +118,19 @@ public class DummyAnnotations {
 	public void setAlternative(int alternative) {
 		this.alternative = Integer.toString(alternative);
 	}
+
+	public boolean isNatBoolean() {
+		return natBoolean;
+	}
+	public void setNatBoolean(boolean natBoolean) {
+		this.natBoolean = natBoolean;
+	}
 	
+	public Boolean isObjBoolean() {
+		return objBoolean;
+	}
+	public void setObjBoolean(Boolean objBoolean) {
+		this.objBoolean = objBoolean;
+	}
 	
 }

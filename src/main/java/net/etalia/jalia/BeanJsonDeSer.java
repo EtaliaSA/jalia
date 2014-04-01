@@ -3,6 +3,7 @@ package net.etalia.jalia;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.Map;
 
 import net.etalia.jalia.stream.JsonReader;
@@ -50,13 +51,31 @@ public class BeanJsonDeSer implements JsonDeSer {
 	@Override
 	public void serialize(Object obj, JsonContext context) throws IOException {
 		JsonWriter output = context.getOutput();
+		
 		ObjectMapper mapper = context.getMapper();
-		JsonClassData cd = context.getMapper().getClassDataFactory().getClassData(obj.getClass(), context);
-		obj = cd.prepare(obj, true);
-		if (obj == null) {
-			output.nullValue();
-			return;
+		EntityFactory factory = context.getMapper().getEntityFactory();
+		if (factory != null) {
+			obj = factory.prepare(obj, true);
+			if (obj == null) {
+				output.nullValue();
+				return;
+			}			
+			
+			String id = factory.getId(obj);
+			if (id != null) {
+				Map<String,Object> sents = (Map<String, Object>) context.get("BeanJsonDeSer_Sents");
+				if (sents == null) {
+					sents = new HashMap<>();
+					context.put("BeanJsonDeSer_Sents", sents);
+				}
+				if (sents.containsKey(id)) {
+					output.value(id);
+					return;
+				}
+				sents.put(id, obj);
+			}
 		}
+		
 		output.beginObject();
 		boolean sentEntity = false;
 		if (mapper.getEntityNameProvider() != null) {
@@ -71,13 +90,14 @@ public class BeanJsonDeSer implements JsonDeSer {
 			output.name("@entity");
 			output.value(obj.getClass().getSimpleName());
 		}
-		if (mapper.getEntityFactory() != null) {
-			String id = mapper.getEntityFactory().getId(obj);
+		if (factory != null) {
+			String id = factory.getId(obj);
 			if (id != null) {
 				output.name("id");
 				output.value(id);
 			}
 		}
+		JsonClassData cd = context.getMapper().getClassDataFactory().getClassData(obj.getClass(), context);
 		for (String name : cd.getGettables()) {
 			if (context.entering(name, cd.getDefaults())) {
 				output.name(name);
@@ -86,7 +106,10 @@ public class BeanJsonDeSer implements JsonDeSer {
 			}
 		}
 		output.endObject();
-		obj = cd.finish(obj, true);		
+		
+		if (factory != null) {
+			obj = factory.finish(obj, true);
+		}
 	}
 
 	@Override
@@ -97,10 +120,17 @@ public class BeanJsonDeSer implements JsonDeSer {
 		boolean embedded = false;
 		
 		JsonReader input = context.getInput();
+		EntityFactory factory = context.getMapper().getEntityFactory();				
 		if (input.peek() == JsonToken.STRING) {
 			// Embedded object
 			id = input.nextString();
 			embedded = true;
+			// Search in already deserialized ones
+			Map<String,Object> dones = (Map<String, Object>) context.get("BeanJsonDeSer_Dones");
+			if (dones != null) {
+				Object done = dones.get(id);
+				if (done != null) return done;
+			}
 		} else {
 			input.beginObject();
 			
@@ -140,7 +170,6 @@ public class BeanJsonDeSer implements JsonDeSer {
 			clazz = pre.getClass();
 		}
 		if (pre != null) {
-			EntityFactory factory = context.getMapper().getEntityFactory();
 			if (factory != null) {
 				String preid = factory.getId(pre);
 				if (preid != null) {
@@ -166,7 +195,7 @@ public class BeanJsonDeSer implements JsonDeSer {
 		}
 		
 		// Now we should have a class to work on
-		
+
 		// Check if the pre is coherent
 		if (pre != null) {
 			if (!clazz.isAssignableFrom(pre.getClass())) {
@@ -175,7 +204,6 @@ public class BeanJsonDeSer implements JsonDeSer {
 		}
 		if (pre == null && clazz != null) {
 			// Try to obtain it from factory
-			EntityFactory factory = context.getMapper().getEntityFactory();
 			if (factory != null) {
 				pre = factory.buildEntity(clazz, id);
 			}
@@ -191,7 +219,18 @@ public class BeanJsonDeSer implements JsonDeSer {
 		
 		// Now we should have a pre to work on
 		JsonClassData cd = context.getMapper().getClassDataFactory().getClassData(pre.getClass(), context);
-		pre = cd.prepare(pre, false);
+		if (factory != null) {
+			pre = factory.prepare(pre, false);
+		}		
+		
+		if (id != null) {
+			Map<String,Object> dones = (Map<String, Object>) context.get("BeanJsonDeSer_Dones");
+			if (dones == null) {
+				dones = new HashMap<>();
+				context.put("BeanJsonDeSer_Dones", dones);
+			}
+			dones.put(id, pre);
+		}
 		while (input.hasNext()) {
 			String name = input.nextName();
 			Object preval = null;
@@ -211,8 +250,10 @@ public class BeanJsonDeSer implements JsonDeSer {
 		}
 		input.endObject();
 
-		pre = cd.finish(pre, false);
-		
+		if (factory != null) {
+			pre = factory.finish(pre, false);
+		}		
+
 		return pre;
 	}
 

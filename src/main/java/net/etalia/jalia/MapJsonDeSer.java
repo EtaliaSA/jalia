@@ -83,6 +83,7 @@ public class MapJsonDeSer implements JsonDeSer {
 			keys.add(name);
 			Object preval = read.get(name);
 			Object val = context.getMapper().readValue(context, preval, inner);
+			val = reduceNumber(val);
 			try {
 				act.put(name, val);
 			} catch (UnsupportedOperationException e) {
@@ -96,6 +97,23 @@ public class MapJsonDeSer implements JsonDeSer {
 		}
 		input.endObject();
 		return act;
+	}
+
+	private Object reduceNumber(Object val) {
+		if (val == null) return null;
+		if (!(val instanceof Number)) return val;
+		if (val instanceof Double) {
+			Double d = (Double)val;
+			Long l = d.longValue();
+			if (l.doubleValue() == d.doubleValue()) return reduceNumber(l);
+			return val;
+		}
+		if (val instanceof Long) {
+			Long l = (Long)val;
+			if (l.longValue() > Integer.MAX_VALUE) return val;
+			return reduceNumber(l.intValue());
+		}
+		return val;
 	}
 
 }

@@ -2,11 +2,12 @@ package net.etalia.jalia;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 
 import net.etalia.jalia.stream.JsonReader;
 import net.etalia.jalia.stream.JsonWriter;
 
-public class JsonContext {
+public class JsonContext extends HashMap<String, Object>{
 
 	private ObjectMapper mapper;
 	private JsonWriter output;

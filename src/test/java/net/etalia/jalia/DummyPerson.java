@@ -23,6 +23,8 @@ public class DummyPerson extends DummyEntity {
 	private Map<String,Object> extraData = null;
 	private List<String> secrets = null;
 	
+	private List<DummyPerson> friends = new ArrayList<>();
+	
 	public DummyPerson() {}
 	
 	public DummyPerson(String id, String name, String surname, DummyAddress... addresses) {
@@ -77,6 +79,10 @@ public class DummyPerson extends DummyEntity {
 	@JsonSetter
 	private void setSecrets(List<String> secrets) {
 		this.secrets = secrets;
+	}
+	
+	public List<DummyPerson> getFriends() {
+		return friends;
 	}
 	
 	@Override

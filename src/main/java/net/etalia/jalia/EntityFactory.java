@@ -6,4 +6,9 @@ public interface EntityFactory {
 	
 	public Object buildEntity(Class<?> clazz, String id);
 	
+	public Object prepare(Object obj, boolean serializing);
+	
+	public Object finish(Object obj, boolean serializing);
+	
+	
 }

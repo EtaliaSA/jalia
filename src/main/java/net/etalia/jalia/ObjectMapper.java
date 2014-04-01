@@ -218,6 +218,7 @@ public class ObjectMapper {
 		try {
 			return deser.deserialize(ctx, pre, hint);
 		} catch (Throwable t) {
+			if (t instanceof IllegalStateException) throw (IllegalStateException)t;
 			throw new IllegalStateException(t);
 		}
 		
@@ -259,17 +260,22 @@ public class ObjectMapper {
 	public void writeValue(OutputStream stream, Object obj) {
 		writeValue(stream, null, obj);
 	}
-	
-	public byte[] writeValueAsBytes(Object obj) {
+
+	public byte[] writeValueAsBytes(Object obj, OutField fields) {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
-			writeValue(baos, obj);
+			writeValue(baos, fields, obj);
 		} finally {
 			try {
 				baos.close();
 			} catch (IOException e) {};
 		}
 		return baos.toByteArray();
+	}
+	
+	
+	public byte[] writeValueAsBytes(Object obj) {
+		return writeValueAsBytes(obj, null);
 	}
 	
 	

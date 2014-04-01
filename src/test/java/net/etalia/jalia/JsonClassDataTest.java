@@ -95,8 +95,8 @@ public class JsonClassDataTest {
 		
 		JsonClassData jcd = factory.getClassData(DummyAnnotations.class, null);
 		
-		assertThat(jcd.getGettables(), containsInAnyOrder("both","getOnly","getOnlyByGetter","unusual","alternative"));
-		assertThat(jcd.getSettables(), containsInAnyOrder("both","setOnly","setOnlyBySetter","unusual","alternative"));
+		assertThat(jcd.getGettables(), containsInAnyOrder("both","getOnly","getOnlyByGetter","unusual","alternative","objBoolean","natBoolean"));
+		assertThat(jcd.getSettables(), containsInAnyOrder("both","setOnly","setOnlyBySetter","unusual","alternative","objBoolean","natBoolean"));
 		assertThat(jcd.getDefaults(), containsInAnyOrder("both"));
 		
 		assertThat(jcd.getSetHint("alternative").getConcrete(), equalTo((Class)Integer.TYPE));

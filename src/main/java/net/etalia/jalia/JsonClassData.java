@@ -79,7 +79,11 @@ public class JsonClassData {
 		}
 		// Parse not annotated after
 		for (Method method : methods) {
-			if (method.getName().startsWith("get")) {
+			if (method.getName().startsWith("get") || 
+					(method.getName().startsWith("is") && 
+							(method.getReturnType().equals(Boolean.class) || 
+							method.getReturnType().equals(Boolean.TYPE))
+				)) {
 				parseGetter(method, ignore);
 			}
 			if (method.getName().startsWith("set")) {
@@ -112,7 +116,11 @@ public class JsonClassData {
 		JsonIgnore ignoreAnn = method.getAnnotation(JsonIgnore.class);
 		if (name == null || name.length() == 0) {
 			name = method.getName();
-			name = name.substring(3);
+			if (name.startsWith("is")) {
+				name = name.substring(2);
+			} else {
+				name = name.substring(3);
+			}
 			name = Introspector.decapitalize(name);
 			if (ignore.contains(name) && !explicitSet && (ignoreAnn == null || ignoreAnn.value())) return "!" + name;
 		}
@@ -220,14 +228,6 @@ public class JsonClassData {
 		} catch (Throwable e) {
 			throw new IllegalStateException("Error invoking " + method, e);
 		}
-	}
-	
-	public Object prepare(Object obj, boolean serializing) {
-		return obj;
-	}
-	
-	public Object finish(Object obj, boolean serializing) {
-		return obj;
 	}
 	
 }
