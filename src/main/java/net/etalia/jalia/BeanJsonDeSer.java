@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import net.etalia.jalia.stream.JsonReader;
 import net.etalia.jalia.stream.JsonToken;
@@ -98,10 +100,28 @@ public class BeanJsonDeSer implements JsonDeSer {
 			}
 		}
 		JsonClassData cd = context.getMapper().getClassDataFactory().getClassData(obj.getClass(), context);
+		Set<String> sents = new HashSet<>();
 		for (String name : cd.getGettables()) {
 			if (context.entering(name, cd.getDefaults())) {
+				sents.add(name);
 				output.name(name);
 				context.getMapper().writeValue(cd.getValue(name, obj), context);
+				context.exited();
+			}
+		}
+		for (String name : context.getCurrentSubs()) {
+			if (sents.contains(name)) continue;
+			if (context.entering(name, cd.getDefaults())) {
+				Object val = null;
+				try {
+					val = cd.getValue(name, obj);
+				} catch (Throwable t) {
+					// TODO log this
+					context.exited();
+					continue;
+				}
+				output.name(name);
+				context.getMapper().writeValue(val, context);
 				context.exited();
 			}
 		}
@@ -173,7 +193,7 @@ public class BeanJsonDeSer implements JsonDeSer {
 			if (factory != null) {
 				String preid = factory.getId(pre);
 				if (preid != null) {
-					if (id == null || !preid.equals(id)) {
+					if (id != null && !preid.equals(id)) {
 						pre = null;
 					}
 				} else if (id != null) {

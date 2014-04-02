@@ -9,10 +9,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import net.etalia.jalia.annotations.DefaultFieldsSerialization;
+import net.etalia.jalia.annotations.JsonDefaultFields;
 import net.etalia.jalia.annotations.JsonGetter;
 import net.etalia.jalia.annotations.JsonIgnore;
 import net.etalia.jalia.annotations.JsonIgnoreProperties;
+import net.etalia.jalia.annotations.JsonOnDemandOnly;
 import net.etalia.jalia.annotations.JsonSetter;
 import net.etalia.utils.LockHashMap;
 
@@ -29,6 +30,7 @@ public class JsonClassData {
 	protected Set<String> defaults = new HashSet<>();
 	
 	protected Map<String,Method> getters = new HashMap<>();
+	protected Map<String,Method> ondemand = new HashMap<>();
 	protected Map<String,Method> setters = new HashMap<>();
 
 	protected TypeUtil typeUtil = null;
@@ -48,6 +50,10 @@ public class JsonClassData {
 	
 	private void parse(Class<?> c) {
 		this.typeUtil = TypeUtil.get(c);
+		
+		if (c.getSimpleName().equals("PublicationStandard")) {
+			System.out.println("BINGO");
+		}
 
 		Set<String> ignore = new HashSet<String>();
 		// Parse JsonIgnoreProperties
@@ -58,9 +64,8 @@ public class JsonClassData {
 			}
 		}
 		// Parse DefaultFieldsSerialization
-		// TODO move this to the etalia custom factory or move the annotation to this package
 		{
-			DefaultFieldsSerialization defaultfields = c.getAnnotation(DefaultFieldsSerialization.class);
+			JsonDefaultFields defaultfields = c.getAnnotation(JsonDefaultFields.class);
 			if (defaultfields != null) {
 				this.defaults.addAll(Arrays.asList(defaultfields.value().split(",")));
 			}
@@ -149,8 +154,15 @@ public class JsonClassData {
 			}
 			return;
 		}
-		if (this.getters.containsKey(name)) return;
-		this.getters.put(name, method);
+		if (this.ondemand.containsKey(name)) return;
+		JsonOnDemandOnly onDemandAnn = method.getAnnotation(JsonOnDemandOnly.class);
+		if (onDemandAnn != null) {
+			this.ondemand.put(name, method);
+			this.getters.remove(name);
+		} else {
+			if (this.getters.containsKey(name)) return;
+			this.getters.put(name, method);
+		}
 	}
 	
 	private void parseSetter(Method method, Set<String> ignore) {
@@ -174,6 +186,7 @@ public class JsonClassData {
 	
 	public Object getValue(String name, Object obj) {
 		Method method = this.getters.get(name);
+		if (method == null) method = this.ondemand.get(name);
 		if (method == null) throw new IllegalStateException("Can't find a getter for " + name);
 		try {
 			return method.invoke(obj);

@@ -1,13 +1,13 @@
 package net.etalia.jalia;
 
-import net.etalia.jalia.annotations.DefaultFieldsSerialization;
+import net.etalia.jalia.annotations.JsonDefaultFields;
 import net.etalia.jalia.annotations.JsonGetter;
 import net.etalia.jalia.annotations.JsonIgnore;
 import net.etalia.jalia.annotations.JsonIgnoreProperties;
 import net.etalia.jalia.annotations.JsonSetter;
 
 @JsonIgnoreProperties({"hidden1","hidden2"})
-@DefaultFieldsSerialization("both")
+@JsonDefaultFields("both")
 public class DummyAnnotations {
 
 	private String both;

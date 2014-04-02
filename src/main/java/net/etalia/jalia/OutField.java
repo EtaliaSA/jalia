@@ -94,10 +94,9 @@ public class OutField {
 	}
 
 	public boolean hasSubs() {
-		if (all) return true;
 		return subs != null && subs.size() > 0;
 	}
-
+	
 	public Set<String> toStringList() {
 		Set<String> ret = new HashSet<>();
 		toStringList(ret);
@@ -123,6 +122,19 @@ public class OutField {
 
 	public static OutField getRoot(String... fields) {
 		return new OutField(null).getCreateSubs(fields);
+	}
+
+	public Set<String> getSubsNames() {
+		if (this.subs == null) return Collections.emptySet();
+		return Collections.unmodifiableSet(this.subs.keySet());
+	}
+	
+	public OutField reparent(String name) {
+		OutField ret = new OutField(null);
+		ret.subs = new HashMap<>();
+		ret.subs.put(name, this);
+		this.parent = ret;
+		return ret;
 	}
 	
 }

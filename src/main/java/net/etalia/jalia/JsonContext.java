@@ -3,6 +3,7 @@ package net.etalia.jalia;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Set;
 
 import net.etalia.jalia.stream.JsonReader;
 import net.etalia.jalia.stream.JsonWriter;
@@ -53,20 +54,26 @@ public class JsonContext extends HashMap<String, Object>{
 	}
 
 	public boolean entering(String fieldName, Collection<String> defaults) {
-		OutField acsub = currentFields.getSub(fieldName);
-		if (acsub == null) {
+		//if (acsub == null) {
 			if (!currentFields.hasSubs()) {
 				if (defaults != null && defaults.size() > 0) {
+					currentFields.setAll(false);
 					for (String def : defaults) {
 						currentFields.getCreateSub(def);
 					}
 					return entering(fieldName);
 				}
 			}
-			return false;
-		}
+			OutField acsub = currentFields.getSub(fieldName);
+			if (acsub == null)
+				return false;
+		//}
 		currentFields = acsub;
 		return true;
+	}
+	
+	public Set<String> getCurrentSubs() {
+		return currentFields.getSubsNames();
 	}
 	
 	public void exited() {

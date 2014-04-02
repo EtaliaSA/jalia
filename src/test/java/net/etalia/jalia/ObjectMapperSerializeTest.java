@@ -351,6 +351,8 @@ public class ObjectMapperSerializeTest {
 			
 			assertThat(json, not(containsString("\"type\":")));
 			assertThat(json, not(containsString("\"EMAIL\"")));
+			assertThat(json, not(containsString("\"similars\":")));
+			
 		}
 		{
 			OutField of = new OutField(null);
@@ -374,6 +376,23 @@ public class ObjectMapperSerializeTest {
 			assertThat(json, containsString("\"type\":"));
 			assertThat(json, containsString("\"EMAIL\""));
 		}
+		{
+			OutField of = new OutField(null);
+			of.getCreateSub("name");
+			of.getCreateSub("similars.name");
+			
+			String json = mapper.writeValueAsString(person, of);
+			System.out.println(json);
+			
+			assertThat(json, containsString("\"name\":"));
+			assertThat(json, containsString("\"Simone\""));
+			
+			assertThat(json, not(containsString("\"surname\":")));
+			assertThat(json, not(containsString("\"Gianni\"")));
+			
+			assertThat(json, containsString("\"similars\":"));
+		}
+		
 	}
 	
 	@Test

@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.etalia.jalia.annotations.JsonIgnore;
+import net.etalia.jalia.annotations.JsonOnDemandOnly;
 import net.etalia.jalia.annotations.JsonSetter;
 
 
@@ -92,6 +93,10 @@ public class DummyPerson extends DummyEntity {
 				+ getIdentifier() + "]";
 	}
 	
+	@JsonOnDemandOnly
+	public List<DummyPerson> getSimilars() {
+		return Arrays.asList(new DummyPerson("p1-1", "Test", "Similar"));
+	}
 	
 	
 }
