@@ -60,7 +60,13 @@ public class DummyEntityProvider implements EntityFactory, EntityNameProvider, J
 			if (ret != null) return ret;
 		}
 		try {
-			ret = (DummyEntity)TypeUtil.get(clazz).newInstance();
+			if (clazz == DummyAddress.class) {
+				ret = new DummyAddress(id, null, null);
+			} else if (clazz == DummyPerson.class) {
+				ret = new DummyPerson();
+			} else {
+				ret = (DummyEntity)TypeUtil.get(clazz).newInstance();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

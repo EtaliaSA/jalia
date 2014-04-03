@@ -261,13 +261,16 @@ public class BeanJsonDeSer implements JsonDeSer {
 			String name = input.nextName();
 			context.deserializationEntering(name);
 			Object preval = null;
-			try {
-				preval = cd.getValue(name, pre);
-			} catch (Exception e) {
-				// TODO log this?
-			}
 			TypeUtil hintval = cd.getSetHint(name);
 			if (hintval == null) hintval = cd.getGetHint(name);
+			// TODO this is not right, we don't know if a custom deserializer will need or not the previous value
+			if (hintval != null && !hintval.isCharSequence() && !hintval.isNumber()) {
+				try {
+					preval = cd.getValue(name, pre);
+				} catch (Exception e) {
+					// TODO log this?
+				}
+			}
 			try {
 				Object nval = context.getMapper().readValue(context, preval, hintval);
 				try {

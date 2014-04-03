@@ -6,6 +6,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -16,15 +19,18 @@ public class TypeUtil {
 	public static TypeUtil get(Type type) {
 		if (type == null) return null;
 		TypeUtil ret = cache.get(type);
-		if (ret != null) return ret;
+		if (ret != null) 
+			return ret;
 		ret = new TypeUtil(type);
 		TypeUtil pre = cache.putIfAbsent(type, ret);
-		if (pre != null) ret = pre;
+		if (pre != null) 
+			ret = pre;
 		return ret;
 	}
 	
 	private Type type;
 	private Class<?> concrete;
+	private Map<String,Type> returnTypes = new HashMap<>(); 
 	
 	public TypeUtil(Type type) {
 		this.type = type;
@@ -77,13 +83,28 @@ public class TypeUtil {
 	}
 	
 	public TypeUtil findReturnTypeOf(String methodName, Class<?>... params) {
-		Method method;
-		try {
-			method = getConcrete().getMethod(methodName, params);
-		} catch (NoSuchMethodException | SecurityException e) {
-			throw new IllegalArgumentException("Cannot find method " + getConcrete().getName() + "." + methodName, e);
+		String key = methodName + (params == null ? "0" : Arrays.toString(params));
+		Type retType = returnTypes.get(key);
+		// TypeUtil.class used as a marker for unsolvable
+		// TODO could use something more elegant
+		if (retType == TypeUtil.class) throw new IllegalStateException("Can't resolve return type");
+		if (retType == null) {
+			try {
+				Method method;
+				try {
+					method = getConcrete().getMethod(methodName, params);
+				} catch (NoSuchMethodException | SecurityException e) {
+					throw new IllegalArgumentException("Cannot find method " + getConcrete().getName() + "." + methodName, e);
+				}
+				retType = resolveType(method.getGenericReturnType());
+				returnTypes.put(key, retType);
+			} catch (IllegalStateException e) {
+				// TypeUtil.class used as a marker for unsolvable
+				returnTypes.put(key, TypeUtil.class);
+				throw e;
+			}
 		}
-		return get(resolveType(method.getGenericReturnType()));
+		return get(retType);
 	}
 	
 	public TypeUtil findParameterOf(String methodName, int paramIndex) {
@@ -170,6 +191,12 @@ public class TypeUtil {
 	public boolean isLong() {
 		return Long.class == getConcrete() || Long.TYPE == getConcrete();
 	}
+	
+	public boolean isNumber() {
+		return Number.class.isAssignableFrom(getConcrete());
+	}
+	
+	
 
 	public boolean isArray() {
 		Class<?> conc = null;

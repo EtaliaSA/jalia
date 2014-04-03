@@ -1,5 +1,6 @@
 package net.etalia.jalia;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -166,6 +167,7 @@ public class ObjectMapper {
 				if (ach > max) {
 					deser = acds;
 					max = ach;
+					if (max == 10) break;
 				}
 			} catch (NullPointerException e) {}
 		}
@@ -262,11 +264,13 @@ public class ObjectMapper {
 	}
 
 	public byte[] writeValueAsBytes(Object obj, OutField fields) {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream(2048);
+		//BufferedOutputStream bos = new BufferedOutputStream(baos);
 		try {
 			writeValue(baos, fields, obj);
 		} finally {
 			try {
+				//bos.flush();
 				baos.close();
 			} catch (IOException e) {};
 		}

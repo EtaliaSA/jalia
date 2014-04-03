@@ -90,7 +90,7 @@ public class ListJsonDeSer implements JsonDeSer {
 					}
 				} catch (Exception e) {
 					// TODO log this
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
 			}
 		}
