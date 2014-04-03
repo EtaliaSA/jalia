@@ -41,6 +41,7 @@ public class JsonClassData {
 		this.defaults.addAll(other.defaults);
 		this.getters.putAll(other.getters);
 		this.setters.putAll(other.setters);
+		this.ondemand.putAll(other.ondemand);
 	}
 	
 	protected JsonClassData(Class<?> clazz) {
@@ -51,10 +52,6 @@ public class JsonClassData {
 	private void parse(Class<?> c) {
 		this.typeUtil = TypeUtil.get(c);
 		
-		if (c.getSimpleName().equals("PublicationStandard")) {
-			System.out.println("BINGO");
-		}
-
 		Set<String> ignore = new HashSet<String>();
 		// Parse JsonIgnoreProperties
 		{
@@ -84,6 +81,7 @@ public class JsonClassData {
 		}
 		// Parse not annotated after
 		for (Method method : methods) {
+			if (!Modifier.isPublic(method.getModifiers())) continue;
 			if (method.getName().startsWith("get") || 
 					(method.getName().startsWith("is") && 
 							(method.getReturnType().equals(Boolean.class) || 

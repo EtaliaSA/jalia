@@ -30,7 +30,7 @@ public class ObjectMapperDeserializeTest {
 	
 	@Test
 	public void simpleMap() throws Exception {
-		String json = "{ 'testString':'string', 'testInt':1, 'testBoolean':true, 'subMap' : { 'subString':'subString' }}";
+		String json = "{ 'testString':'string', 'testInt':1, 'testBoolean':true, 'subMap' : { 'subString':'subString' }, 'testNull':null}";
 		json = replaceQuote(json);
 		
 		ObjectMapper mapper = new ObjectMapper();

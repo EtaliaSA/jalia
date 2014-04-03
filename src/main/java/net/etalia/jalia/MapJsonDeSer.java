@@ -35,7 +35,7 @@ public class MapJsonDeSer implements JsonDeSer {
 	public void serialize(Object obj, JsonContext context) throws IOException {
 		JsonWriter output = context.getOutput();
 		Map<String,?> map = (Map<String,?>) obj;
-		if (map.size() == 0 && !context.getMapper().isSendEmpty()) {
+		if (map.size() == 0 && !context.isRoot() && !context.getMapper().isSendEmpty()) {
 			output.clearName();
 			return;
 		}

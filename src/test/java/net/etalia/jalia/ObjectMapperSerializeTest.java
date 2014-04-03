@@ -1,6 +1,7 @@
 package net.etalia.jalia;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertThat;
@@ -288,6 +289,24 @@ public class ObjectMapperSerializeTest {
 		
 		String json = om.writeValueAsString(person);
 		assertThat(json, not(containsString("\"addresses\":")));
+	}
+	
+	@Test
+	public void emptyRoots() throws Exception {
+		ObjectMapper om = new ObjectMapper();
+
+		{
+			String json = om.writeValueAsString(new ArrayList<String>());
+			assertThat(json, equalTo("[]"));
+		}
+		{
+			String json = om.writeValueAsString(new String[] {});
+			assertThat(json, equalTo("[]"));
+		}
+		{
+			String json = om.writeValueAsString(new HashMap<String,String>());
+			assertThat(json, equalTo("{}"));
+		}
 	}
 	
 	@Test

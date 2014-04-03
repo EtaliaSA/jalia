@@ -46,13 +46,13 @@ public class DummyEntityProvider implements EntityFactory, EntityNameProvider, J
 	}
 
 	@Override
-	public String getId(Object entity) {
+	public String getId(Object entity, JsonContext context) {
 		if (!(entity instanceof DummyEntity)) throw new IllegalArgumentException("Cannot get id from " + entity);
 		return ((DummyEntity)entity).getIdentifier();
 	}
 
 	@Override
-	public Object buildEntity(Class<?> clazz, String id) {
+	public Object buildEntity(Class<?> clazz, String id, JsonContext context) {
 		if (clazz == null) return null;
 		DummyEntity ret = null;
 		if (id != null) {
@@ -70,12 +70,12 @@ public class DummyEntityProvider implements EntityFactory, EntityNameProvider, J
 	}
 
 	@Override
-	public Object prepare(Object obj, boolean serializing) {
+	public Object prepare(Object obj, boolean serializing, JsonContext context) {
 		return obj;
 	}
 
 	@Override
-	public Object finish(Object obj, boolean serializing) {
+	public Object finish(Object obj, boolean serializing, JsonContext context) {
 		return obj;
 	}
 	

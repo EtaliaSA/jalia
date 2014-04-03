@@ -31,6 +31,7 @@ public class NativeJsonDeSer implements JsonDeSer {
 			if (peek == JsonToken.NUMBER) return 10;
 			if (peek == JsonToken.BOOLEAN) return 10;
 			if (peek == JsonToken.STRING) return 10;
+			if (peek == JsonToken.NULL) return 10;
 		} catch (IOException e) {}
 		return -1;
 	}

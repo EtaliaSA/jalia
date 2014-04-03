@@ -16,6 +16,7 @@ public class JsonContext extends HashMap<String, Object>{
 	private OutField rootFields;
 	
 	private OutField currentFields;
+	private int deserCount;
 	
 	
 	public JsonContext(ObjectMapper mapper) {
@@ -79,5 +80,22 @@ public class JsonContext extends HashMap<String, Object>{
 	public void exited() {
 		currentFields = currentFields.getParent();
 	}
+
+	public void deserializationEntering(String name) {
+		this.deserCount++;
+	}
 	
+	public void deserializationExited() {
+		this.deserCount--;
+	}
+	
+
+	public boolean isRoot() {
+		if (currentFields != null) {
+			return currentFields.getParent() == null || currentFields.getParent() == currentFields;
+		} 
+		return deserCount == 0;
+	}
+
+
 }

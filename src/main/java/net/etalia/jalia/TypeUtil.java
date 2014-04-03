@@ -58,7 +58,7 @@ public class TypeUtil {
 	private Type resolveType(Type type) {
 		if (!(type instanceof TypeVariable)) return type;
 		TypeUtil ptype = this;
-		while (!(ptype.type instanceof ParameterizedType) && ptype != null) {
+		while (ptype != null && !(ptype.type instanceof ParameterizedType)) {
 			ptype = get(ptype.getConcrete().getGenericSuperclass());
 		}
 		if (ptype == null) throw new IllegalStateException("Cannot resolve type variable " + type + " because my type is not a ParameterizedType : " + this.type); 
