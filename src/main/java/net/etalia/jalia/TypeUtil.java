@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import net.etalia.utils.MissHolder;
+
 public class TypeUtil {
 
 	private static ConcurrentMap<Type, TypeUtil> cache = new ConcurrentHashMap<Type, TypeUtil>();
@@ -29,8 +31,13 @@ public class TypeUtil {
 	}
 	
 	private Type type;
+	
+	// Caches
 	private Class<?> concrete;
-	private Map<String,Type> returnTypes = new HashMap<>(); 
+	private Map<String,MissHolder<TypeUtil>> returnTypes = new HashMap<>();
+	private Enum<?>[] enums;
+	private Boolean hasConcreteCache;
+	private Boolean isInstantiatableCache; 
 	
 	public TypeUtil(Type type) {
 		this.type = type;
@@ -53,12 +60,14 @@ public class TypeUtil {
 	}
 	
 	public boolean hasConcrete() {
+		if (hasConcreteCache != null) return hasConcreteCache;
 		try {
 			getConcrete();
-			return true;
+			hasConcreteCache = true;
 		} catch (Exception e) {
-			return false;
+			hasConcreteCache = false;
 		}
+		return hasConcreteCache;
 	}
 	
 	private Type resolveType(Type type) {
@@ -67,7 +76,7 @@ public class TypeUtil {
 		while (ptype != null && !(ptype.type instanceof ParameterizedType)) {
 			ptype = get(ptype.getConcrete().getGenericSuperclass());
 		}
-		if (ptype == null) throw new IllegalStateException("Cannot resolve type variable " + type + " because my type is not a ParameterizedType : " + this.type); 
+		if (ptype == null) return null; 
 		TypeVariable var = (TypeVariable) type;
 		Class<?> conc = ptype.getConcrete();
 		TypeVariable<?>[] params = conc.getTypeParameters();
@@ -78,51 +87,59 @@ public class TypeUtil {
 				break;
 			}
 		}
-		if (ind == -1) throw new IllegalStateException("Cant resolve type variable " + this.type + " " + type);
+		if (ind == -1) return null;
 		return ((ParameterizedType)ptype.type).getActualTypeArguments()[ind];
 	}
 	
 	public TypeUtil findReturnTypeOf(String methodName, Class<?>... params) {
-		String key = methodName + (params == null ? "0" : Arrays.toString(params));
-		Type retType = returnTypes.get(key);
-		// TypeUtil.class used as a marker for unsolvable
-		// TODO could use something more elegant
-		if (retType == TypeUtil.class) throw new IllegalStateException("Can't resolve return type");
-		if (retType == null) {
-			try {
-				Method method;
-				try {
-					method = getConcrete().getMethod(methodName, params);
-				} catch (NoSuchMethodException | SecurityException e) {
-					throw new IllegalArgumentException("Cannot find method " + getConcrete().getName() + "." + methodName, e);
-				}
-				retType = resolveType(method.getGenericReturnType());
-				returnTypes.put(key, retType);
-			} catch (IllegalStateException e) {
-				// TypeUtil.class used as a marker for unsolvable
-				returnTypes.put(key, TypeUtil.class);
-				throw e;
-			}
+		String key = "r-" + methodName + (params == null ? "0" : Arrays.toString(params));
+		MissHolder<TypeUtil> found = returnTypes.get(key);
+		if (found != null) return found.getVal();
+		Method method;
+		try {
+			method = getConcrete().getMethod(methodName, params);
+		} catch (NoSuchMethodException | SecurityException e) {
+			// TODO log this
+			return null;
 		}
-		return get(retType);
+		Type retType = resolveType(method.getGenericReturnType());
+		TypeUtil ret = null;
+		if (retType == null) {
+			returnTypes.put(key, new MissHolder<TypeUtil>(null));				
+		} else {
+			ret = get(retType);
+			returnTypes.put(key, new MissHolder<TypeUtil>(ret));				
+		}
+		return ret;
 	}
 	
 	public TypeUtil findParameterOf(String methodName, int paramIndex) {
+		String key = "p-" + paramIndex + methodName;
+		MissHolder<TypeUtil> found = returnTypes.get(key);
+		if (found != null) return found.getVal();
+		TypeUtil ret = null;
 		try {
 			Method[] methods = getConcrete().getMethods();
 			for (Method m : methods) {
 				if (!m.getName().equals(methodName)) continue;
 				Type[] params = m.getGenericParameterTypes();
 				if (params.length <= paramIndex) continue;
-				return get(resolveType(params[paramIndex]));
+				ret = get(resolveType(params[paramIndex]));
+				break;
 			}
 		} catch (Exception e) {
-			throw new IllegalArgumentException("Cannot find method " + getConcrete().getName() + "." + methodName, e);			
 		}
-		throw new IllegalArgumentException("Cannot find method " + getConcrete().getName() + "." + methodName + " with at least " + paramIndex + " parameters");			
+		returnTypes.put(key, new MissHolder<>(ret));
+		return ret;			
 	}
 	
 	public boolean isInstantiatable() {
+		if (isInstantiatableCache == null) 
+			isInstantiatableCache = isInstantiableInternal();
+		return isInstantiatableCache;
+	}
+	
+	private boolean isInstantiableInternal() {
 		if (!hasConcrete()) return false;
 		Class<?> concrete = getConcrete();
 		if (concrete == null) return false;
@@ -137,7 +154,7 @@ public class TypeUtil {
 			return constructor != null;
 		} catch (NoSuchMethodException e) {			
 		}
-		return false;
+		return false;		
 	}
 	
 	public <T> T newInstance() {
@@ -169,7 +186,7 @@ public class TypeUtil {
 	}
 
 	public Enum<?> getEnumValue(String val) {
-		Enum<?>[] enums=(Enum<?>[]) getConcrete().getEnumConstants();
+		if (enums == null) enums=(Enum<?>[]) getConcrete().getEnumConstants();
 		for (Enum<?> v : enums) {
 			if (v.name().equals(val)) return v;
 		}

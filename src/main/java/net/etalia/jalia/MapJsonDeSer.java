@@ -64,12 +64,7 @@ public class MapJsonDeSer implements JsonDeSer {
 						e.printStackTrace();
 					}
 				}
-				try {
-					inner = hint.findReturnTypeOf("remove", Object.class);
-				} catch (Exception e) {
-					// TODO log this
-					e.printStackTrace();
-				}
+				inner = hint.findReturnTypeOf("remove", Object.class);
 			}
 			if (act == null) act = new HashMap<>();
 		}

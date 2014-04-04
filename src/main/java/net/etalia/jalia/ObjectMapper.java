@@ -19,10 +19,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
 import net.etalia.utils.LockHashMap;
+import net.etalia.utils.MissHolder;
 
 import net.etalia.jalia.stream.JsonReader;
 import net.etalia.jalia.stream.JsonWriter;
@@ -30,8 +32,9 @@ import net.etalia.jalia.stream.JsonWriter;
 public class ObjectMapper {
 
 	private List<JsonDeSer> registeredDeSers = new ArrayList<>();
-	private LockHashMap<Class<?>,JsonDeSer> serializers = new LockHashMap<>();
-	private LockHashMap<TypeUtil,JsonDeSer> deserializers = new LockHashMap<>();
+	private JsonDeSer nullDeSer = null;
+	private LockHashMap<Class<?>,MissHolder<JsonDeSer>> serializers = new LockHashMap<>();
+	private LockHashMap<TypeUtil,MissHolder<JsonDeSer>> deserializers = new LockHashMap<>();
 	
 	private EntityFactory entityProvider = null;
 	private EntityNameProvider entityNameProvider = null;
@@ -47,9 +50,15 @@ public class ObjectMapper {
 		this.prettyPrint = prettyPrint;
 		return this;
 	}
+	public boolean isPrettyPrint() {
+		return prettyPrint;
+	}
 	public ObjectMapper setSendNulls(boolean sendNulls) {
 		this.sendNulls = sendNulls;
 		return this;
+	}
+	public boolean isSendNulls() {
+		return sendNulls;
 	}
 	public ObjectMapper setSendEmpty(boolean sendEmpty) {
 		this.sendEmpty = sendEmpty;
@@ -97,7 +106,9 @@ public class ObjectMapper {
 	public void init() {
 		if (inited) return;
 		inited = true;
-		registeredDeSers.add(new NativeJsonDeSer());
+		NativeJsonDeSer nativeDeSer = new NativeJsonDeSer();
+		if (nullDeSer == null) nullDeSer = nativeDeSer;
+		registeredDeSers.add(nativeDeSer);
 		registeredDeSers.add(new MapJsonDeSer());
 		registeredDeSers.add(new ListJsonDeSer());
 		registeredDeSers.add(new BeanJsonDeSer());
@@ -115,19 +126,19 @@ public class ObjectMapper {
 	
 	protected JsonDeSer getSerializerFor(JsonContext context, Object obj) {
 		Class<?> clazz = null;
-		if (obj != null) {
-			clazz = obj.getClass();
-		}
-		
+		if (obj == null) return nullDeSer;
+		clazz = obj.getClass();
+
+		MissHolder<JsonDeSer> holder = null;
 		serializers.lockRead();
 		try {
-			if (serializers.containsKey(clazz))
-				return serializers.get(clazz);
+			holder = serializers.get(clazz);
 		} finally {
 			serializers.unlockRead();
 		}
-		JsonDeSer deser = null;
+		if (holder != null) return holder.getVal();
 		
+		JsonDeSer deser = null;
 		int max = -1;
 		for (JsonDeSer acds : registeredDeSers) {
 			try {
@@ -135,12 +146,13 @@ public class ObjectMapper {
 				if (ach > max) {
 					deser = acds;
 					max = ach;
+					if (max >= 10) break;
 				}
 			} catch (NullPointerException e) {}
 		}
 		serializers.lockWrite();
 		try {
-			serializers.put(clazz, deser);
+			serializers.put(clazz, new MissHolder<>(deser));
 		} finally {
 			serializers.unlockWrite();
 		}
@@ -150,13 +162,14 @@ public class ObjectMapper {
 
 	protected JsonDeSer getDeserializerFor(JsonContext context, TypeUtil hint) {
 		if (hint != null) {
+			MissHolder<JsonDeSer> holder = null;
 			deserializers.lockRead();
 			try {
-				if (deserializers.containsKey(hint))
-					return deserializers.get(hint);
+				holder = deserializers.get(hint);
 			} finally {
 				deserializers.unlockRead();
 			}
+			if (holder != null) return holder.getVal();
 		}
 		JsonDeSer deser = null;
 		
@@ -167,18 +180,18 @@ public class ObjectMapper {
 				if (ach > max) {
 					deser = acds;
 					max = ach;
-					if (max == 10) break;
+					if (max >= 10) break;
 				}
 			} catch (NullPointerException e) {}
 		}
 		if (hint != null) {
 			deserializers.lockWrite();
 			try {
-				deserializers.put(hint, deser);
+				deserializers.put(hint, new MissHolder<>(deser));
 			} finally {
 				deserializers.unlockWrite();
 			}
-		}		
+		}
 		return deser;
 	}
 	

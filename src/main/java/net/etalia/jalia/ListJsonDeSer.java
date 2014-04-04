@@ -82,15 +82,10 @@ public class ListJsonDeSer implements JsonDeSer {
 			if (pretype.isArray()) {
 				inner = pretype.getArrayType();
 			} else {
-				try {
-					if (List.class.isAssignableFrom(pretype.getConcrete())) {
-						inner = pretype.findReturnTypeOf("get", Integer.TYPE);
-					} else if (Set.class.isAssignableFrom(pretype.getConcrete())) {
-						inner = pretype.findParameterOf("add", 0);
-					}
-				} catch (Exception e) {
-					// TODO log this
-					//e.printStackTrace();
+				if (List.class.isAssignableFrom(pretype.getConcrete())) {
+					inner = pretype.findReturnTypeOf("get", Integer.TYPE);
+				} else if (Set.class.isAssignableFrom(pretype.getConcrete())) {
+					inner = pretype.findParameterOf("add", 0);
 				}
 			}
 		}
@@ -107,15 +102,10 @@ public class ListJsonDeSer implements JsonDeSer {
 				if (hint.isArray()) {
 					inner = hint.getArrayType();
 				} else {
-					try {
-						if (List.class.isAssignableFrom(hint.getConcrete())) {
-							inner = hint.findReturnTypeOf("get", Integer.TYPE);
-						} else if (Set.class.isAssignableFrom(hint.getConcrete())) {
-							inner = hint.findParameterOf("add", 0);
-						}
-					} catch (Exception e) {
-						// TODO log this
-						e.printStackTrace();
+					if (List.class.isAssignableFrom(hint.getConcrete())) {
+						inner = hint.findReturnTypeOf("get", Integer.TYPE);
+					} else if (Set.class.isAssignableFrom(hint.getConcrete())) {
+						inner = hint.findParameterOf("add", 0);
 					}
 				}				
 			}

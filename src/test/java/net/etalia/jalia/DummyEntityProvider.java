@@ -12,7 +12,7 @@ public class DummyEntityProvider implements EntityFactory, EntityNameProvider, J
 
 	private Map<String, DummyEntity> db = new HashMap<>();
 	
-	private JsonClassDataFactory classFactory = new JsonClassDataFactoryImpl();
+	private JsonClassDataFactoryImpl classFactory = new JsonClassDataFactoryImpl();
 	
 	public void addToDb(DummyEntity... entities) {
 		for (DummyEntity de : entities) {
@@ -24,10 +24,12 @@ public class DummyEntityProvider implements EntityFactory, EntityNameProvider, J
 	@Override
 	public JsonClassData getClassData(Class<?> clazz, JsonContext context) {
 		JsonClassData jcd = classFactory.getClassData(clazz, context);
+		if (!jcd.isNew()) return jcd;
 		if (DummyEntity.class.isAssignableFrom(clazz)) {
 			jcd.ignoreSetter("identifier");
 			jcd.ignoreGetter("identifier");
 		}
+		jcd.unsetNew();
 		return jcd;
 	}
 	

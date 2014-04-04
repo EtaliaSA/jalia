@@ -116,10 +116,8 @@ public class BeanJsonDeSer implements JsonDeSer {
 			if (sents.contains(name)) continue;
 			if (context.entering(name, cd.getDefaults())) {
 				Object val = null;
-				try {
-					val = cd.getValue(name, obj);
-				} catch (Throwable t) {
-					// TODO log this
+				val = cd.getValue(name, obj);
+				if (val == null && !context.getMapper().isSendNulls()) {
 					context.exited();
 					continue;
 				}
@@ -264,20 +262,12 @@ public class BeanJsonDeSer implements JsonDeSer {
 			TypeUtil hintval = cd.getSetHint(name);
 			if (hintval == null) hintval = cd.getGetHint(name);
 			// TODO this is not right, we don't know if a custom deserializer will need or not the previous value
-			if (hintval != null && !hintval.isCharSequence() && !hintval.isNumber()) {
-				try {
-					preval = cd.getValue(name, pre);
-				} catch (Exception e) {
-					// TODO log this?
-				}
+			if (hintval == null || !hintval.hasConcrete() || (!hintval.isCharSequence() && !hintval.isNumber())) {
+				preval = cd.getValue(name, pre);
 			}
 			try {
 				Object nval = context.getMapper().readValue(context, preval, hintval);
-				try {
-					cd.setValue(name, nval, pre);
-				} catch (Exception e) {
-					// TODO log this?
-				}
+				cd.setValue(name, nval, pre);
 			} finally {
 				context.deserializationExited();
 			}

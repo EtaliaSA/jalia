@@ -16,6 +16,7 @@ import net.etalia.jalia.annotations.JsonIgnoreProperties;
 import net.etalia.jalia.annotations.JsonOnDemandOnly;
 import net.etalia.jalia.annotations.JsonSetter;
 import net.etalia.utils.LockHashMap;
+import net.etalia.utils.MissHolder;
 
 public class JsonClassData {
 
@@ -32,12 +33,15 @@ public class JsonClassData {
 	protected Map<String,Method> getters = new HashMap<>();
 	protected Map<String,Method> ondemand = new HashMap<>();
 	protected Map<String,Method> setters = new HashMap<>();
-
-	protected TypeUtil typeUtil = null;
+	
+	// Caches
+	protected Map<String,MissHolder<TypeUtil>> getHints = new HashMap<>();
+	protected Map<String,MissHolder<TypeUtil>> setHints = new HashMap<>();
+	
+	protected boolean isNew = true;
 	
 	protected JsonClassData(JsonClassData other) {
 		this.clazz = other.clazz;
-		this.typeUtil = other.typeUtil;
 		this.defaults.addAll(other.defaults);
 		this.getters.putAll(other.getters);
 		this.setters.putAll(other.setters);
@@ -49,8 +53,14 @@ public class JsonClassData {
 		parse(clazz);
 	}
 	
+	public boolean isNew() {
+		return isNew;
+	}
+	public void unsetNew() {
+		this.isNew = false;
+	}
+	
 	private void parse(Class<?> c) {
-		this.typeUtil = TypeUtil.get(c);
 		
 		Set<String> ignore = new HashSet<String>();
 		// Parse JsonIgnoreProperties
@@ -185,11 +195,13 @@ public class JsonClassData {
 	public Object getValue(String name, Object obj) {
 		Method method = this.getters.get(name);
 		if (method == null) method = this.ondemand.get(name);
-		if (method == null) throw new IllegalStateException("Can't find a getter for " + name);
+		// TODO log this?
+		if (method == null) return null;
 		try {
 			return method.invoke(obj);
 		} catch (Throwable e) {
-			throw new IllegalStateException("Error invoking " + method, e);
+			// TODO log this?
+			return null;
 		}
 	}
 
@@ -218,27 +230,38 @@ public class JsonClassData {
 	}
 
 	public TypeUtil getSetHint(String name) {
+		MissHolder<TypeUtil> found = setHints.get(name);
+		if (found != null) return found.getVal();
+		TypeUtil ret = null;
 		if (setters.containsKey(name)) {
-			return TypeUtil.get(setters.get(name).getGenericParameterTypes()[0]);
+			ret = TypeUtil.get(setters.get(name).getGenericParameterTypes()[0]);
 		}
-		return null;
+		setHints.put(name, new MissHolder<>(ret));
+		return ret;
 	}
 
 	public TypeUtil getGetHint(String name) {
+		MissHolder<TypeUtil> found = getHints.get(name);
+		if (found != null) return found.getVal();
+		TypeUtil ret = null;
 		if (getters.containsKey(name)) {
-			return TypeUtil.get(getters.get(name).getGenericReturnType());
+			ret = TypeUtil.get(getters.get(name).getGenericReturnType());
 		} 
-		return null;
+		getHints.put(name, new MissHolder<>(ret));
+		return ret;
 	}
 	
-	public void setValue(String name, Object nval, Object tgt) {
+	public boolean setValue(String name, Object nval, Object tgt) {
 		Method method = this.setters.get(name);
-		if (method == null) throw new IllegalStateException("Can't find a setter for " + name);
+		// TODO log this?
+		if (method == null) return false;
 		try {
 			method.invoke(tgt, nval);
 		} catch (Throwable e) {
-			throw new IllegalStateException("Error invoking " + method, e);
+			// TODO log this?
+			return false;
 		}
+		return false;
 	}
 	
 }

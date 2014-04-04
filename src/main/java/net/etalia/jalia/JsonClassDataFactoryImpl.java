@@ -14,5 +14,9 @@ public class JsonClassDataFactoryImpl implements JsonClassDataFactory {
 		cache.put(clazz, ret);
 		return ret;
 	}
+	
+	public void cache(Class<?> clazz, JsonClassData cd) {
+		cache.put(clazz, cd);
+	}
 
 }

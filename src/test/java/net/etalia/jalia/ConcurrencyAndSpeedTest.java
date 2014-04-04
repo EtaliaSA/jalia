@@ -192,11 +192,18 @@ public class ConcurrencyAndSpeedTest {
 		}
 		
 		long start = System.currentTimeMillis();
+		DummyPerson p = null;
 		for (int i = 0; i < rounds; i++) {
-			tot ^= mapper.readValue(personFullBytes, DummyPerson.class).hashCode();
+			p = mapper.readValue(personFullBytes, DummyPerson.class);
+			tot ^= p.hashCode();
 		}
 		long elaps = System.currentTimeMillis() - start;
 		System.out.println(rounds + "\t Full bean deser done \t in " + elaps + "ms \t = " + (elaps / (double)rounds) + "ms each");
+		System.out.println(p);
 	}
 	
+	@Test
+	public void concurrentVersusLocked() throws Exception {
+		
+	}
 }
