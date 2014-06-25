@@ -289,7 +289,7 @@ public class JsonReader implements Closeable {
 
   public JsonReader lookAhead() {
 	  try {
-		this.in.mark(32000);
+		this.in.mark(320000);
 	  } catch (IOException e) {
 		throw new IllegalStateException("Reader should always support mark and reset", e);
 	  }
@@ -1303,11 +1303,11 @@ public class JsonReader implements Closeable {
     return false;
   }
 
-  private int getLineNumber() {
+  public int getLineNumber() {
     return lineNumber + 1;
   }
 
-  private int getColumnNumber() {
+  public int getColumnNumber() {
     return pos - lineStart + 1;
   }
 

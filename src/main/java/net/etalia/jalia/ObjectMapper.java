@@ -1,6 +1,5 @@
 package net.etalia.jalia;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -15,19 +14,14 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
-import net.etalia.utils.LockHashMap;
-import net.etalia.utils.MissHolder;
-
 import net.etalia.jalia.stream.JsonReader;
 import net.etalia.jalia.stream.JsonWriter;
+import net.etalia.utils.LockHashMap;
+import net.etalia.utils.MissHolder;
 
 public class ObjectMapper {
 
@@ -221,7 +215,11 @@ public class ObjectMapper {
 		configureReader(jsonIn);
 		JsonContext ctx = new JsonContext(this);
 		ctx.setInput(jsonIn);
-		return readValue(ctx, pre, hint);
+		try {
+			return readValue(ctx, pre, hint);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Error parsing " + jsonIn.getLineNumber() + ":" + jsonIn.getColumnNumber(), e);
+		}
 	}
 	
 	public Object readValue(JsonContext ctx, Object pre, TypeUtil hint) {

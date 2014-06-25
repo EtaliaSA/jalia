@@ -1,7 +1,6 @@
 package net.etalia.jalia;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 
 import net.etalia.jalia.stream.JsonReader;
 import net.etalia.jalia.stream.JsonToken;

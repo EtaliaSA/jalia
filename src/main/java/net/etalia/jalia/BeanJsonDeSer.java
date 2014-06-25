@@ -1,8 +1,6 @@
 package net.etalia.jalia;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;

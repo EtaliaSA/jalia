@@ -1,7 +1,6 @@
 package net.etalia.jalia;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 
 public interface JsonDeSer {
 

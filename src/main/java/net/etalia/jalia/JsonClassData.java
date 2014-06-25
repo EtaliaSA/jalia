@@ -1,6 +1,5 @@
 package net.etalia.jalia;
 
-import java.beans.Introspector;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -15,7 +14,6 @@ import net.etalia.jalia.annotations.JsonIgnore;
 import net.etalia.jalia.annotations.JsonIgnoreProperties;
 import net.etalia.jalia.annotations.JsonOnDemandOnly;
 import net.etalia.jalia.annotations.JsonSetter;
-import net.etalia.utils.LockHashMap;
 import net.etalia.utils.MissHolder;
 
 public class JsonClassData {
@@ -134,7 +132,7 @@ public class JsonClassData {
 			} else {
 				name = name.substring(3);
 			}
-			name = Introspector.decapitalize(name);
+			name = decapitalize(name);
 			if (ignore.contains(name) && !explicitSet && (ignoreAnn == null || ignoreAnn.value())) return "!" + name;
 		}
 		if (ignoreAnn != null && ignoreAnn.value()) {
@@ -143,6 +141,20 @@ public class JsonClassData {
 		}		
 		return name;
 	}
+	
+    private static String decapitalize(String name) {
+        if (name == null || name.length() == 0) {
+            return name;
+        }
+        if (name.length() > 1 && Character.isUpperCase(name.charAt(1)) &&
+                        Character.isUpperCase(name.charAt(0))){
+            return name;
+        }
+        char chars[] = name.toCharArray();
+        chars[0] = Character.toLowerCase(chars[0]);
+        return new String(chars);
+    }
+	
 	
 	private void parseGetter(Method method, Set<String> ignore) {
 		// Skip getClass
