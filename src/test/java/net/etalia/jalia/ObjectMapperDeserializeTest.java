@@ -70,7 +70,7 @@ public class ObjectMapperDeserializeTest {
 		assertThat(map, hasEntry("a2", 2));
 	}
 	
-	@Test(expected=IllegalStateException.class)
+	@Test(expected=IllegalArgumentException.class)
 	public void intMapError() throws Exception {
 		String json = "{ 'a1' : 1, 'a2' : 'ciao'}";
 		json = replaceQuote(json);
@@ -113,7 +113,7 @@ public class ObjectMapperDeserializeTest {
 		assertThat(list, contains(1,2,3));
 	}
 	
-	@Test(expected=IllegalStateException.class)
+	@Test(expected=IllegalArgumentException.class)
 	public void intListError() throws Exception {
 		String json = "[ 1, 2, 'ciao']";
 		json = replaceQuote(json);
@@ -240,7 +240,7 @@ public class ObjectMapperDeserializeTest {
 		assertThat(person.getAddresses().get(0).getAddress(), equalTo("m.rossi@gmail.com"));
 	}
 	
-	@Test(expected=IllegalStateException.class)
+	@Test(expected=IllegalArgumentException.class)
 	public void wrongHint() throws Exception {
 		String json = 
 				"{" +
@@ -261,7 +261,7 @@ public class ObjectMapperDeserializeTest {
 		om.readValue(json.replace("'", "\""), new TypeUtil.Specific<Integer>(){}.type());
 	}
 	
-	@Test(expected=IllegalStateException.class)
+	@Test(expected=IllegalArgumentException.class)
 	public void wrongInnerType() throws Exception {
 		String json = 
 				"{" +
