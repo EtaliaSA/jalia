@@ -1,7 +1,9 @@
 package net.etalia.jalia;
 
+import net.etalia.jalia.annotations.JsonDefaultFields;
 import net.etalia.jalia.annotations.JsonIgnore;
 
+@JsonDefaultFields("identifier,type,address")
 public class DummyAddress extends DummyEntity {
 
 	public enum AddressType {
@@ -16,6 +18,7 @@ public class DummyAddress extends DummyEntity {
 	
 	private AddressType type;
 	private String address;
+	private String notes;
 	
 	private DummyAddress() {}
 	
@@ -37,6 +40,13 @@ public class DummyAddress extends DummyEntity {
 	}
 	public void setAddress(String address) {
 		this.address = address;
+	}
+	
+	public String getNotes() {
+		return notes;
+	}
+	public void setNotes(String notes) {
+		this.notes = notes;
 	}
 
 	@Override

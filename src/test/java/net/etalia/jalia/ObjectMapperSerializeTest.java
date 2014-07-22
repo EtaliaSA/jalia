@@ -220,6 +220,7 @@ public class ObjectMapperSerializeTest {
 		person.setIdentifier("p1");
 		
 		DummyAddress address = new DummyAddress("a1", AddressType.EMAIL, "simoneg@apache.org");
+		address.setNotes("Doremi");
 		person.getAddresses().add(address);
 		
 		return person;
@@ -412,6 +413,36 @@ public class ObjectMapperSerializeTest {
 			assertThat(json, containsString("\"similars\":"));
 		}
 		
+	}
+
+	@Test
+	public void objectWithOutFieldsOverride() throws Exception {
+		DummyPerson person = makePerson();
+		
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.setPrettyPrint(true);
+		mapper.init();
+
+		{
+			OutField of = new OutField(null);
+			of.getCreateSub("name");
+			of.getCreateSub("addresses");
+			
+			String json = mapper.writeValueAsString(person, of);
+			System.out.println(json);
+			
+			assertThat(json, not(containsString("Doremi")));
+		}
+		{
+			OutField of = new OutField(null);
+			of.getCreateSub("name");
+			of.getCreateSub("addresses.*");
+			
+			String json = mapper.writeValueAsString(person, of);
+			System.out.println(json);
+			
+			assertThat(json, containsString("Doremi"));
+		}
 	}
 	
 	@Test

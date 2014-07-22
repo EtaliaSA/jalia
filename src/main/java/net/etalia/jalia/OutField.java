@@ -11,6 +11,7 @@ public class OutField {
 	private String name;
 	private Map<String, OutField> subs;
 	private boolean all;
+	private boolean explicit;
 	
 	public OutField(OutField parent, String name) {
 		this.parent = parent;
@@ -62,6 +63,7 @@ public class OutField {
 		if (ret == null) {
 			if (mname.equals("*")) {
 				this.all = true;
+				this.explicit = true;
 				ret = this;
 			} else {
 				ret = new OutField(this, mname);
@@ -93,7 +95,7 @@ public class OutField {
 	}
 
 	public boolean hasSubs() {
-		return subs != null && subs.size() > 0;
+		return (this.all && this.explicit) || (subs != null && subs.size() > 0);
 	}
 	
 	public Set<String> toStringList() {

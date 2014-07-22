@@ -2,9 +2,12 @@ package net.etalia.jalia;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,6 +35,10 @@ public class JsonClassData {
 	protected Map<String,Method> ondemand = new HashMap<>();
 	protected Map<String,Method> setters = new HashMap<>();
 	
+	protected Map<String,Method> allGetters = new HashMap<>();
+	protected Map<String,Method> allSetters = new HashMap<>();
+	
+	
 	// Caches
 	protected Map<String,MissHolder<TypeUtil>> getHints = new HashMap<>();
 	protected Map<String,MissHolder<TypeUtil>> setHints = new HashMap<>();
@@ -44,6 +51,8 @@ public class JsonClassData {
 		this.getters.putAll(other.getters);
 		this.setters.putAll(other.setters);
 		this.ondemand.putAll(other.ondemand);
+		this.allGetters.putAll(other.allGetters);
+		this.allSetters.putAll(other.allSetters);
 	}
 	
 	protected JsonClassData(Class<?> clazz) {
@@ -165,6 +174,7 @@ public class JsonClassData {
 		method.setAccessible(true);
 		String name = methodName(method, ignore);
 		if (name.startsWith("!")) {
+			allGetters.put(name.substring(1), method);
 			// Check if to remove also the setter
 			Method setter = this.setters.get(name.substring(1));
 			if (setter != null) {
@@ -174,6 +184,7 @@ public class JsonClassData {
 			}
 			return;
 		}
+		allGetters.put(name, method);
 		if (this.ondemand.containsKey(name)) return;
 		JsonOnDemandOnly onDemandAnn = method.getAnnotation(JsonOnDemandOnly.class);
 		if (onDemandAnn != null) {
@@ -191,6 +202,7 @@ public class JsonClassData {
 		method.setAccessible(true);
 		String name = methodName(method, ignore);
 		if (name.startsWith("!")) {
+			allSetters.put(name.substring(1), method);
 			// Check if to remove also the setter
 			Method getter = this.getters.get(name.substring(1));
 			if (getter != null) {
@@ -200,13 +212,19 @@ public class JsonClassData {
 			}
 			return;
 		}
+		allSetters.put(name, method);
 		if (this.setters.containsKey(name)) return;
 		this.setters.put(name, method);
 	}
-	
+
 	public Object getValue(String name, Object obj) {
+		return getValue(name, obj, false);
+	}
+	
+	public Object getValue(String name, Object obj, boolean force) {
 		Method method = this.getters.get(name);
 		if (method == null) method = this.ondemand.get(name);
+		if (method == null && force) method = this.allGetters.get(name);
 		// TODO log this?
 		if (method == null) return null;
 		try {
@@ -219,6 +237,12 @@ public class JsonClassData {
 
 	public Set<String> getGettables() {
 		return this.getters.keySet();
+	}
+	
+	public List<String> getSortedGettables() {
+		ArrayList<String> ret = new ArrayList<String>(this.getters.keySet());
+		Collections.sort(ret);
+		return ret;
 	}
 
 	public Set<String> getSettables() {
@@ -262,9 +286,14 @@ public class JsonClassData {
 		getHints.put(name, new MissHolder<>(ret));
 		return ret;
 	}
-	
+
 	public boolean setValue(String name, Object nval, Object tgt) {
+		return setValue(name, nval, tgt, false);
+	}	
+	
+	public boolean setValue(String name, Object nval, Object tgt, boolean force) {
 		Method method = this.setters.get(name);
+		if (method == null && force) method = this.allSetters.get(name);
 		// TODO log this?
 		if (method == null) return false;
 		try {

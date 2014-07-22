@@ -50,5 +50,9 @@ public class JaliaParametersFilter implements Filter {
 	public static void clean() {
 		fields.remove();
 	}
+	
+	public static void set(OutField root) {
+		fields.set(root);
+	}
 
 }

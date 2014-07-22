@@ -99,7 +99,7 @@ public class BeanJsonDeSer implements JsonDeSer {
 		}
 		JsonClassData cd = context.getMapper().getClassDataFactory().getClassData(obj.getClass(), context);
 		Set<String> sents = new HashSet<>();
-		for (String name : cd.getGettables()) {
+		for (String name : cd.getSortedGettables()) {
 			if (context.entering(name, cd.getDefaults())) {
 				sents.add(name);
 				output.name(name);
