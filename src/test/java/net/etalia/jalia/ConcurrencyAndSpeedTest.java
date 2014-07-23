@@ -43,9 +43,6 @@ public class ConcurrencyAndSpeedTest {
 		mapper.setClassDataFactory(provider);
 		mapper.setEntityFactory(provider);
 		mapper.setEntityNameProvider(provider);
-		mapper.setPrettyPrint(false);
-		mapper.setSendEmpty(false);
-		mapper.setSendNulls(false);
 		
 		map.put("testInt", 1);
 		map.put("testString", "string");

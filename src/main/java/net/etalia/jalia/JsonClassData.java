@@ -1,5 +1,6 @@
 package net.etalia.jalia;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -9,12 +10,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import net.etalia.jalia.annotations.JsonDefaultFields;
 import net.etalia.jalia.annotations.JsonGetter;
 import net.etalia.jalia.annotations.JsonIgnore;
 import net.etalia.jalia.annotations.JsonIgnoreProperties;
+import net.etalia.jalia.annotations.JsonInclude;
+import net.etalia.jalia.annotations.JsonInclude.Include;
 import net.etalia.jalia.annotations.JsonOnDemandOnly;
 import net.etalia.jalia.annotations.JsonSetter;
 import net.etalia.utils.MissHolder;
@@ -38,6 +42,7 @@ public class JsonClassData {
 	protected Map<String,Method> allGetters = new HashMap<>();
 	protected Map<String,Method> allSetters = new HashMap<>();
 	
+	protected Map<String,Map<String,Object>> options = new HashMap<String, Map<String,Object>>();
 	
 	// Caches
 	protected Map<String,MissHolder<TypeUtil>> getHints = new HashMap<>();
@@ -53,6 +58,7 @@ public class JsonClassData {
 		this.ondemand.putAll(other.ondemand);
 		this.allGetters.putAll(other.allGetters);
 		this.allSetters.putAll(other.allSetters);
+		this.options.putAll(other.options);
 	}
 	
 	protected JsonClassData(Class<?> clazz) {
@@ -110,10 +116,27 @@ public class JsonClassData {
 				parseSetter(method, ignore);
 			}
 		}
+		
 		Class<?> sup = c.getSuperclass();
 		if (sup != null) parse(sup);
 		Class<?>[] interfaces = c.getInterfaces();
 		for (Class<?> inter : interfaces) parse(inter);
+		
+		// Add class configuration to all getters 
+		Map<String, Object> globs = new HashMap<String, Object>();
+		parseOptions(clazz, globs);
+		if (globs.size() > 0) {
+			for (Entry<String, Map<String, Object>> entry : this.options.entrySet()) {
+				Map<String, Object> mopts = entry.getValue();
+				if (mopts == null) {
+					entry.setValue(new HashMap<String, Object>(globs));
+				} else {
+					HashMap<String, Object> nopts = new HashMap<String, Object>(globs);
+					nopts.putAll(mopts);
+					entry.setValue(nopts);
+				}
+			}
+		}
 	}
 
 	private String methodName(Method method, Set<String> ignore) {
@@ -171,15 +194,28 @@ public class JsonClassData {
 		if (method.getReturnType().equals(Void.class)) return;
 		if (method.getParameterTypes().length > 0) return;
 		if (Modifier.isStatic(method.getModifiers())) return;
-		method.setAccessible(true);
+		
+		// Get options
 		String name = methodName(method, ignore);
+		String baseName = name.startsWith("!") ? name.substring(1) : name;
+		Map<String,Object> opts = this.options.get(baseName); 
+		if (opts == null) opts = new HashMap<String, Object>();
+		parseOptions(method, opts);
+		if (!opts.isEmpty()) {
+			this.options.put(baseName, opts);
+		} else {
+			this.options.put(baseName, null);
+		}
+		
+		method.setAccessible(true);
+		name = methodName(method, ignore);
 		if (name.startsWith("!")) {
-			allGetters.put(name.substring(1), method);
+			allGetters.put(baseName, method);
 			// Check if to remove also the setter
-			Method setter = this.setters.get(name.substring(1));
+			Method setter = this.setters.get(baseName);
 			if (setter != null) {
 				if (methodName(setter, ignore).startsWith("!")) {
-					this.setters.remove(name.substring(1));
+					this.setters.remove(baseName);
 				}
 			}
 			return;
@@ -196,18 +232,36 @@ public class JsonClassData {
 		}
 	}
 	
+	private void parseOptions(AnnotatedElement ele, Map<String, Object> opts) {
+		JsonInclude includeAnn = ele.getAnnotation(JsonInclude.class);
+		if (includeAnn != null) {
+			Include include = includeAnn.value();
+			if (include == Include.ALWAYS) {
+				opts.put(DefaultOptions.INCLUDE_EMPTY.toString(), true);
+				opts.put(DefaultOptions.INCLUDE_NULLS.toString(), true);
+			} else if (include == Include.NOT_NULL) {
+				opts.put(DefaultOptions.INCLUDE_NULLS.toString(), false);
+				opts.put(DefaultOptions.INCLUDE_EMPTY.toString(), true);
+			} else if (include == Include.NOT_EMPTY) {
+				opts.put(DefaultOptions.INCLUDE_NULLS.toString(), false);
+				opts.put(DefaultOptions.INCLUDE_EMPTY.toString(), false);
+			}
+		}
+	}
+
 	private void parseSetter(Method method, Set<String> ignore) {
 		if (method.getParameterTypes().length != 1) return;
 		if (Modifier.isStatic(method.getModifiers())) return;
 		method.setAccessible(true);
 		String name = methodName(method, ignore);
+		String baseName = name.startsWith("!") ? name.substring(1) : name;
 		if (name.startsWith("!")) {
-			allSetters.put(name.substring(1), method);
+			allSetters.put(baseName, method);
 			// Check if to remove also the setter
-			Method getter = this.getters.get(name.substring(1));
+			Method getter = this.getters.get(baseName);
 			if (getter != null) {
 				if (methodName(getter, ignore).startsWith("!")) {
-					this.getters.remove(name.substring(1));
+					this.getters.remove(baseName);
 				}
 			}
 			return;
@@ -304,5 +358,8 @@ public class JsonClassData {
 		}
 		return false;
 	}
-	
+
+	public Map<String,Object> getOptions(String name) {
+		return this.options.get(name);
+	}
 }

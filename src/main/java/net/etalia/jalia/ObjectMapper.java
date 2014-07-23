@@ -14,7 +14,9 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
@@ -34,32 +36,19 @@ public class ObjectMapper {
 	private EntityNameProvider entityNameProvider = null;
 	private JsonClassDataFactory classDataFactory = new JsonClassDataFactoryImpl();
 	
-	private boolean prettyPrint = false;
-	private boolean sendNulls = false;
-	private boolean sendEmpty = false;
+	private Map<String,Object> defaultOptions = new HashMap<String, Object>();
+	
+	{
+		defaultOptions.put(DefaultOptions.PRETTY_PRINT.toString(), false);
+		defaultOptions.put(DefaultOptions.INCLUDE_EMPTY.toString(), false);
+		defaultOptions.put(DefaultOptions.INCLUDE_NULLS.toString(), false);
+	}
 	
 	protected boolean inited = false;
 	
-	public ObjectMapper setPrettyPrint(boolean prettyPrint) {
-		this.prettyPrint = prettyPrint;
+	public <X> ObjectMapper setOption(Option<X> option, X val) {
+		defaultOptions.put(option.toString(), val);
 		return this;
-	}
-	public boolean isPrettyPrint() {
-		return prettyPrint;
-	}
-	public ObjectMapper setSendNulls(boolean sendNulls) {
-		this.sendNulls = sendNulls;
-		return this;
-	}
-	public boolean isSendNulls() {
-		return sendNulls;
-	}
-	public ObjectMapper setSendEmpty(boolean sendEmpty) {
-		this.sendEmpty = sendEmpty;
-		return this;
-	}
-	public boolean isSendEmpty() {
-		return sendEmpty;
 	}
 	
 	// TODO support more than one factory or cascading factories, and/or a factory that self configures based on typeinfo annotations
@@ -112,9 +101,8 @@ public class ObjectMapper {
 		return reader;
 	}
 	protected JsonWriter configureWriter(JsonWriter writer) {
-		if (prettyPrint)
+		if ((Boolean)defaultOptions.get(DefaultOptions.PRETTY_PRINT.toString()))
 			writer.setIndent("  ");
-		writer.setSerializeNulls(sendNulls);
 		return writer;
 	}
 	
@@ -193,6 +181,7 @@ public class ObjectMapper {
 		init();
 		configureWriter(jsonOut);
 		JsonContext ctx = new JsonContext(this);
+		ctx.putInheritStack(this.defaultOptions);
 		ctx.setOutput(jsonOut);
 		if (fields == null) fields = new OutField(true);
 		ctx.setRootFields(fields);

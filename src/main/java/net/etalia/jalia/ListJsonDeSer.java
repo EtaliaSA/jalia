@@ -40,7 +40,7 @@ public class ListJsonDeSer implements JsonDeSer {
 	public void serialize(Object obj, JsonContext context) throws IOException {
 		JsonWriter output = context.getOutput();
 		if (obj.getClass().isArray()) {
-			if (Array.getLength(obj) == 0 && !context.isRoot() && !context.getMapper().isSendEmpty()) {
+			if (Array.getLength(obj) == 0 && !context.isRoot() && !context.getFromStackBoolean(DefaultOptions.INCLUDE_EMPTY.toString())) {
 				output.clearName();
 				return;
 			}
@@ -49,7 +49,7 @@ public class ListJsonDeSer implements JsonDeSer {
 				context.getMapper().writeValue(Array.get(obj, i), context);
 			}
 		} else {
-			if (!((Iterable)obj).iterator().hasNext() && !context.isRoot() && !context.getMapper().isSendEmpty()) {
+			if (!((Iterable)obj).iterator().hasNext() && !context.isRoot() && !context.getFromStackBoolean(DefaultOptions.INCLUDE_EMPTY.toString())) {
 				output.clearName();
 				return;
 			}

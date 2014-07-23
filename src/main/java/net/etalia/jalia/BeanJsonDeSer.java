@@ -103,6 +103,8 @@ public class BeanJsonDeSer implements JsonDeSer {
 			if (context.entering(name, cd.getDefaults())) {
 				sents.add(name);
 				output.name(name);
+				context.putLocalStack(cd.getOptions(name));
+				output.setSerializeNulls(context.getFromStackBoolean(DefaultOptions.INCLUDE_NULLS.toString()));
 				try {
 					context.getMapper().writeValue(cd.getValue(name, obj), context);
 				} finally {
@@ -115,10 +117,12 @@ public class BeanJsonDeSer implements JsonDeSer {
 			if (context.entering(name, cd.getDefaults())) {
 				Object val = null;
 				val = cd.getValue(name, obj);
-				if (val == null && !context.getMapper().isSendNulls()) {
+				if (val == null && !context.getFromStackBoolean(DefaultOptions.INCLUDE_NULLS.toString())) {
 					context.exited();
 					continue;
 				}
+				context.putLocalStack(cd.getOptions(name));
+				output.setSerializeNulls(context.getFromStackBoolean(DefaultOptions.INCLUDE_NULLS.toString()));
 				output.name(name);
 				try {
 					context.getMapper().writeValue(val, context);

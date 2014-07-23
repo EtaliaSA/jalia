@@ -8,6 +8,7 @@ import static org.junit.Assert.assertThat;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,6 @@ public class ObjectMapperSerializeTest {
 	@Test
 	public void simpleMap() {
 		ObjectMapper mapper = new ObjectMapper();
-		mapper.setPrettyPrint(true);
 		mapper.init();
 		
 		Map<String,Object> map = new HashMap<>();
@@ -45,6 +45,8 @@ public class ObjectMapperSerializeTest {
 		submap.put("subString", "string");
 		
 		map.put("testMap", submap);
+		
+		map.put("subEmptyList", new ArrayList<String>());
 		
 		StringWriter writer = new StringWriter();
 		mapper.writeValue(writer, null, map);
@@ -69,12 +71,14 @@ public class ObjectMapperSerializeTest {
 		
 		assertThat(json, containsString("\"testMap\":"));
 		assertThat(json, containsString("\"subString\":"));
+		
+		assertThat(json, containsString("\"subEmptyList\":"));
+		assertThat(json, containsString("[]"));
 	}
 	
 	@Test
 	public void simpleList() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
-		mapper.setPrettyPrint(true);
 		mapper.init();
 
 		List<Object> list = new ArrayList<>();
@@ -105,7 +109,6 @@ public class ObjectMapperSerializeTest {
 	@Test
 	public void mapWithOutFields() {
 		ObjectMapper mapper = new ObjectMapper();
-		mapper.setPrettyPrint(true);
 		mapper.init();
 		
 		Map<String,Object> map = new HashMap<>();
@@ -229,7 +232,6 @@ public class ObjectMapperSerializeTest {
 	@Test
 	public void simpleObject() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
-		mapper.setPrettyPrint(true);
 		mapper.init();
 
 		DummyPerson person = makePerson();
@@ -274,7 +276,7 @@ public class ObjectMapperSerializeTest {
 		String json = om.writeValueAsString(person);
 		assertThat(json, not(containsString("\"surname\":")));
 		
-		om.setSendNulls(true);
+		om.setOption(DefaultOptions.INCLUDE_NULLS, true);
 		json = om.writeValueAsString(person);
 		assertThat(json, containsString("\"surname\":"));
 		assertThat(json, containsString("null"));
@@ -347,7 +349,6 @@ public class ObjectMapperSerializeTest {
 		DummyPerson person = makePerson();
 		
 		ObjectMapper mapper = new ObjectMapper();
-		mapper.setPrettyPrint(true);
 		mapper.init();
 
 		{
@@ -420,7 +421,6 @@ public class ObjectMapperSerializeTest {
 		DummyPerson person = makePerson();
 		
 		ObjectMapper mapper = new ObjectMapper();
-		mapper.setPrettyPrint(true);
 		mapper.init();
 
 		{
@@ -448,7 +448,6 @@ public class ObjectMapperSerializeTest {
 	@Test
 	public void entity() throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
-		mapper.setPrettyPrint(true);
 		DummyEntityProvider provider = new DummyEntityProvider();
 		mapper.setEntityNameProvider(provider);
 		mapper.setEntityFactory(provider);
@@ -473,6 +472,50 @@ public class ObjectMapperSerializeTest {
 		assertThat(json, not(containsString("\"identifier\":")));
 	}
 	
+	@Test
+	public void includes() throws Exception {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.init();
+		
+		OutField of = OutField.getRoot("inclAlways","inclNotNull","inclNotEmpty");
+
+		// Defaults to off
+		mapper.setOption(DefaultOptions.INCLUDE_EMPTY, false);
+		mapper.setOption(DefaultOptions.INCLUDE_NULLS, false);
+		// all nulls
+		{
+			DummyAnnotations da = new DummyAnnotations();
+			da.setInclAlways(null);
+			da.setInclNotEmpty(null);
+			da.setInclNotNull(null);
+			String json = mapper.writeValueAsString(da, of);
+			System.out.println(json);
+			assertThat(json, containsString("inclAlways"));
+			assertThat(json, not(containsString("inclNotNull")));
+			assertThat(json, not(containsString("inclNotEmpty")));
+		}
+		// all empty
+		{
+			DummyAnnotations da = new DummyAnnotations();
+			String json = mapper.writeValueAsString(da, of);
+			System.out.println(json);
+			assertThat(json, containsString("inclAlways"));
+			assertThat(json, containsString("inclNotNull"));
+			assertThat(json, not(containsString("inclNotEmpty")));
+		}
+		// all with elements
+		{
+			DummyAnnotations da = new DummyAnnotations();
+			da.setInclAlways(Arrays.asList("test"));
+			da.setInclNotEmpty(Arrays.asList("test"));
+			da.setInclNotNull(Arrays.asList("test"));
+			String json = mapper.writeValueAsString(da, of);
+			System.out.println(json);
+			assertThat(json, containsString("inclAlways"));
+			assertThat(json, containsString("inclNotNull"));
+			assertThat(json, containsString("inclNotEmpty"));
+		}
+	}
 	
 
 }

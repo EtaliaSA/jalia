@@ -2,9 +2,11 @@ package net.etalia.jalia;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.*;
 
@@ -92,14 +94,27 @@ public class JsonClassDataTest {
 	@Test
 	public void annotations() throws Exception {
 		JsonClassDataFactory factory = new JsonClassDataFactoryImpl();		
+	
+		{
+			JsonClassData jcd = factory.getClassData(DummyAnnotations.class, null);
+			
+			assertThat(jcd.getGettables(), containsInAnyOrder("both","getOnly","getOnlyByGetter","unusual","alternative","objBoolean","natBoolean","inclAlways","inclNotNull","inclNotEmpty"));
+			assertThat(jcd.getSettables(), containsInAnyOrder("both","setOnly","setOnlyBySetter","unusual","alternative","objBoolean","natBoolean","inclAlways","inclNotNull","inclNotEmpty"));
+			assertThat(jcd.getDefaults(), containsInAnyOrder("both"));
+			
+			assertThat(jcd.getSetHint("alternative").getConcrete(), equalTo((Class)Integer.TYPE));
+			
+			assertThat(jcd.getOptions("both"), nullValue());
+			assertThat(jcd.getOptions("inclAlways"), hasEntry(DefaultOptions.INCLUDE_NULLS.toString(), (Object)true));
+			assertThat(jcd.getOptions("inclAlways"), hasEntry(DefaultOptions.INCLUDE_EMPTY.toString(), (Object)true));
+		}		
+		{
+			JsonClassData jcd = factory.getClassData(DummyClassAnnotations.class, null);
+			
+			assertThat(jcd.getOptions("both"), hasEntry(DefaultOptions.INCLUDE_NULLS.toString(), (Object)true));
+			assertThat(jcd.getOptions("both"), hasEntry(DefaultOptions.INCLUDE_EMPTY.toString(), (Object)true));
+		}		
 		
-		JsonClassData jcd = factory.getClassData(DummyAnnotations.class, null);
-		
-		assertThat(jcd.getGettables(), containsInAnyOrder("both","getOnly","getOnlyByGetter","unusual","alternative","objBoolean","natBoolean"));
-		assertThat(jcd.getSettables(), containsInAnyOrder("both","setOnly","setOnlyBySetter","unusual","alternative","objBoolean","natBoolean"));
-		assertThat(jcd.getDefaults(), containsInAnyOrder("both"));
-		
-		assertThat(jcd.getSetHint("alternative").getConcrete(), equalTo((Class)Integer.TYPE));
 	}
 	
 }

@@ -3,7 +3,9 @@ package net.etalia.jalia;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import net.etalia.jalia.stream.JsonReader;
 import net.etalia.jalia.stream.JsonWriter;
@@ -18,11 +20,62 @@ public class JsonContext extends HashMap<String, Object>{
 	private OutField currentFields;
 	private int deserCount;
 	
+	private Stack<Map<String,Object>> localStack = new Stack<Map<String,Object>>();
+	private Stack<Map<String,Object>> inheritStack = new Stack<Map<String,Object>>();
 	
 	public JsonContext(ObjectMapper mapper) {
 		this.mapper = mapper;
 	}
+
+	protected void putInStack(Stack<Map<String,Object>> stack, String name, Object obj) {
+		Map<String, Object> map = stack.peek();
+		if (map == null) {
+			map = new HashMap<String, Object>();
+			stack.pop();
+			stack.push(map);
+		}
+		map.put(name, obj);		
+	}
 	
+	public void putLocalStack(String name, Object obj) {
+		putInStack(localStack, name, obj);
+	}
+	
+	public void putLocalStack(Map<String, Object> options) {
+		if (localStack.isEmpty()) localStack.push(null);
+		if (options == null || options.isEmpty()) return;
+		for (Map.Entry<String, Object> entry : options.entrySet()) {
+			putLocalStack(entry.getKey(), entry.getValue());
+		}
+	}	
+
+	public void putInheritStack(String name, Object obj) {
+		putInStack(inheritStack, name, obj);
+	}
+
+	public void putInheritStack(Map<String, Object> options) {
+		if (inheritStack.isEmpty()) inheritStack.push(null);
+		if (options == null || options.isEmpty()) return;
+		for (Map.Entry<String, Object> entry : options.entrySet()) {
+			putInheritStack(entry.getKey(), entry.getValue());
+		}
+	}	
+	
+	public Object getFromStack(String name) {
+		Map<String, Object> peek = localStack.peek();
+		if (peek != null && peek.containsKey(name)) return peek.get(name);
+		for (int i = inheritStack.size() - 1; i >= 0; i--) {
+			peek = inheritStack.get(i);
+			if (peek != null && peek.containsKey(name)) return peek.get(name);
+		}
+		return null;
+	}
+	
+	public boolean getFromStackBoolean(String name) {
+		Object obj = getFromStack(name);
+		if (obj == null) return false;
+		return (Boolean)obj;
+	}
 	
 	public void setOutput(JsonWriter output) {
 		this.output = output;
@@ -70,6 +123,8 @@ public class JsonContext extends HashMap<String, Object>{
 				return false;
 		//}
 		currentFields = acsub;
+		localStack.push(null);
+		inheritStack.push(null);
 		return true;
 	}
 	
@@ -79,6 +134,8 @@ public class JsonContext extends HashMap<String, Object>{
 	
 	public void exited() {
 		currentFields = currentFields.getParent();
+		localStack.pop();
+		inheritStack.pop();
 	}
 
 	public void deserializationEntering(String name) {

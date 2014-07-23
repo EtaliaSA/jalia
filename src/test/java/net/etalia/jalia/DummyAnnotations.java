@@ -1,10 +1,15 @@
 package net.etalia.jalia;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.etalia.jalia.annotations.JsonDefaultFields;
 import net.etalia.jalia.annotations.JsonGetter;
 import net.etalia.jalia.annotations.JsonIgnore;
 import net.etalia.jalia.annotations.JsonIgnoreProperties;
+import net.etalia.jalia.annotations.JsonInclude;
 import net.etalia.jalia.annotations.JsonSetter;
+import net.etalia.jalia.annotations.JsonInclude.Include;
 
 @JsonIgnoreProperties({"hidden1","hidden2"})
 @JsonDefaultFields("both")
@@ -26,6 +31,10 @@ public class DummyAnnotations {
 	
 	private boolean natBoolean;
 	private Boolean objBoolean;
+	
+	private List<String> inclAlways = new ArrayList<String>();
+	private List<String> inclNotNull = new ArrayList<String>();
+	private List<String> inclNotEmpty = new ArrayList<String>();
 	
 	public String getBoth() {
 		return both;
@@ -133,4 +142,27 @@ public class DummyAnnotations {
 		this.objBoolean = objBoolean;
 	}
 	
+	@JsonInclude(Include.ALWAYS)
+	public List<String> getInclAlways() {
+		return inclAlways;
+	}
+	public void setInclAlways(List<String> evenIfEmpty) {
+		this.inclAlways = evenIfEmpty;
+	}
+
+	@JsonInclude(Include.NOT_EMPTY)
+	public List<String> getInclNotEmpty() {
+		return inclNotEmpty;
+	}
+	public void setInclNotEmpty(List<String> inclNotEmpty) {
+		this.inclNotEmpty = inclNotEmpty;
+	}
+	
+	@JsonInclude(Include.NOT_NULL)
+	public List<String> getInclNotNull() {
+		return inclNotNull;
+	}
+	public void setInclNotNull(List<String> inclNotNull) {
+		this.inclNotNull = inclNotNull;
+	}
 }
