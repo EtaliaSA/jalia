@@ -36,10 +36,18 @@ public class MapJsonDeSer implements JsonDeSer {
 			output.clearName();
 			return;
 		}
-		context.putInheritStack(DefaultOptions.INCLUDE_EMPTY.toString(), true);
+		
+		if (context.hasInLocalStack("All_SerializeStack", obj)) {
+			// TODO this avoid loops, but also break serialization, cause there is no id to send
+			output.clearName();			
+			return;
+		}		
+		context.putLocalStack("All_SerializeStack", obj);
+		
 		output.beginObject();
 		for (Map.Entry<String,?> entry : map.entrySet()) {
 			if (context.entering(entry.getKey(), "*")) {
+				context.putLocalStack(DefaultOptions.INCLUDE_EMPTY.toString(), true);
 				output.name(entry.getKey());
 				context.getMapper().writeValue(entry.getValue(), context);
 				context.exited();

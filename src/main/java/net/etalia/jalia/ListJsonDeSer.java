@@ -39,6 +39,14 @@ public class ListJsonDeSer implements JsonDeSer {
 	@Override
 	public void serialize(Object obj, JsonContext context) throws IOException {
 		JsonWriter output = context.getOutput();
+		
+		if (context.hasInLocalStack("All_SerializeStack", obj)) {
+			// TODO this avoid loops, but also break serialization, cause there is no id to send
+			output.clearName();
+			return;
+		}		
+		context.putLocalStack("All_SerializeStack", obj);
+		
 		if (obj.getClass().isArray()) {
 			if (Array.getLength(obj) == 0 && !context.isRoot() && !context.getFromStackBoolean(DefaultOptions.INCLUDE_EMPTY.toString())) {
 				output.clearName();

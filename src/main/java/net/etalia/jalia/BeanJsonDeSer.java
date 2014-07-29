@@ -50,6 +50,7 @@ public class BeanJsonDeSer implements JsonDeSer {
 
 	@Override
 	public void serialize(Object obj, JsonContext context) throws IOException {
+		
 		JsonWriter output = context.getOutput();
 		
 		ObjectMapper mapper = context.getMapper();
@@ -63,18 +64,33 @@ public class BeanJsonDeSer implements JsonDeSer {
 			
 			String id = factory.getId(obj, context);
 			if (id != null) {
+				// Prevent loops in serialization
+				if (context.hasInLocalStack("All_SerializeStack", obj)) {
+					output.value(id);
+					return;
+				}
+				
+				// Prevent sending and object twice, send on ly the id, unless DefaultOptions.UNROLL_OBJECT
 				Map<String,Object> sents = (Map<String, Object>) context.get("BeanJsonDeSer_Sents");
 				if (sents == null) {
 					sents = new HashMap<>();
 					context.put("BeanJsonDeSer_Sents", sents);
 				}
-				if (sents.containsKey(id)) {
+				if (sents.containsKey(id) && !context.getFromStackBoolean(DefaultOptions.UNROLL_OBJECTS.toString())) {
 					output.value(id);
 					return;
 				}
 				sents.put(id, obj);
 			}
 		}
+
+		if (context.hasInLocalStack("All_SerializeStack", obj)) {
+			// TODO this avoid loops, but also break serialization, cause there is no id to send
+			output.clearName();			
+			return;
+		}		
+		
+		context.putLocalStack("All_SerializeStack", obj);
 		
 		output.beginObject();
 		boolean sentEntity = false;

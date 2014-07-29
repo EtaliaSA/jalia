@@ -28,10 +28,13 @@ public class JsonContext extends HashMap<String, Object>{
 	}
 
 	protected void putInStack(Stack<Map<String,Object>> stack, String name, Object obj) {
-		Map<String, Object> map = stack.peek();
+		Map<String, Object> map = null;
+		if (stack.size() > 0) {
+			map = stack.peek();
+		}
 		if (map == null) {
 			map = new HashMap<String, Object>();
-			stack.pop();
+			if (stack.size() > 0) stack.pop();
 			stack.push(map);
 		}
 		map.put(name, obj);		
@@ -53,12 +56,9 @@ public class JsonContext extends HashMap<String, Object>{
 		putInStack(inheritStack, name, obj);
 	}
 
-	public void putInheritStack(Map<String, Object> options) {
-		if (inheritStack.isEmpty()) inheritStack.push(null);
-		if (options == null || options.isEmpty()) return;
-		for (Map.Entry<String, Object> entry : options.entrySet()) {
-			putInheritStack(entry.getKey(), entry.getValue());
-		}
+	public void initInheritStack(Map<String, Object> options) {
+		inheritStack.push(options);
+		inheritStack.push(null);
 	}	
 	
 	public Object getFromStack(String name) {
@@ -75,6 +75,22 @@ public class JsonContext extends HashMap<String, Object>{
 		Object obj = getFromStack(name);
 		if (obj == null) return false;
 		return (Boolean)obj;
+	}
+	
+	protected boolean hasInStack(Stack<Map<String,Object>> stack, String name, Object obj) {
+		for (int i = stack.size() - 1; i >= 0; i--) {
+			Map<String, Object> peek = stack.get(i);
+			if (peek != null && peek.get(name) == obj) return true;
+		}
+		return false;
+	}
+	
+	public boolean hasInLocalStack(String name, Object obj) {
+		return hasInStack(localStack, name, obj);
+	}
+	
+	public boolean hasInInheritStack(String name, Object obj) {
+		return hasInStack(inheritStack, name, obj);
 	}
 	
 	public void setOutput(JsonWriter output) {

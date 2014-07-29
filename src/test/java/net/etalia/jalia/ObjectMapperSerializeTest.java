@@ -324,6 +324,7 @@ public class ObjectMapperSerializeTest {
 		person2.getFriends().add(person1);
 		
 		ObjectMapper om = new ObjectMapper();
+		om.setOption(DefaultOptions.UNROLL_OBJECTS, true);
 		DummyEntityProvider prov = new DummyEntityProvider();
 		om.setEntityNameProvider(prov);
 		om.setEntityFactory(prov);
@@ -342,6 +343,70 @@ public class ObjectMapperSerializeTest {
 		assertThat(json,containsString("p1"));
 		assertThat(json,containsString("p2"));
 		assertThat(json,containsString("[\"p1\"]"));
+	}
+	
+	@Test
+	public void sameInstanceEmbedded() throws Exception {
+		DummyPerson person1 = new DummyPerson();
+		DummyPerson person2 = new DummyPerson();
+		
+		person1.setName("Persona1");
+		person2.setName("Persona2");
+		
+		person1.setIdentifier("p1");
+		person2.setIdentifier("p2");
+
+		person2.getFriends().add(person1);
+
+		List<DummyPerson> lst = new ArrayList<DummyPerson>();
+		lst.add(person1);
+		lst.add(person1);
+		lst.add(person2);
+		
+		Map<String,Object> map = new HashMap<String, Object>();
+		map.put("kp1", person1);
+		map.put("kp2", person2);
+		map.put("kp1_2", person1);
+		map.put("kp2_2", person2);
+		map.put("kpl", lst);
+		map.put("kloop", map);
+		map.put("kempty", new ArrayList<Object>());
+		
+		ObjectMapper om = new ObjectMapper();
+		om.setOption(DefaultOptions.INCLUDE_EMPTY, false);
+		DummyEntityProvider prov = new DummyEntityProvider();
+		om.setEntityNameProvider(prov);
+		om.setEntityFactory(prov);
+		om.setClassDataFactory(prov);
+
+		{
+			String json = null;
+			json = om.writeValueAsString(map);
+			System.out.println(json);
+			assertThat(json,containsString("\"kp2_2\":{"));
+			assertThat(json,containsString("\"friends\":[{"));
+			assertThat(json,containsString("\"kp1_2\":\"p1"));
+			assertThat(json,containsString("\"kp1\":\"p1"));
+			assertThat(json,containsString("\"kp2\":\"p2"));
+			assertThat(json,containsString("\"kpl\":[\"p1"));
+			assertThat(json,containsString("\"kempty\":["));
+			assertThat(json,not(containsString("kloop")));
+		}
+		
+		{
+			om.setOption(DefaultOptions.UNROLL_OBJECTS, true);
+			String json = null;
+			json = om.writeValueAsString(map);
+			System.out.println(json);			
+			assertThat(json,containsString("\"kp2_2\":{"));
+			assertThat(json,containsString("\"friends\":[{"));
+			assertThat(json,containsString("\"kp1_2\":{"));
+			assertThat(json,containsString("\"kp1\":{"));
+			assertThat(json,containsString("\"kp2\":{"));
+			assertThat(json,containsString("\"kpl\":[{"));
+			assertThat(json,containsString("\"kempty\":["));
+			assertThat(json,not(containsString("kloop")));
+		}
 	}
 
 	@Test

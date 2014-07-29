@@ -181,7 +181,7 @@ public class ObjectMapper {
 		init();
 		configureWriter(jsonOut);
 		JsonContext ctx = new JsonContext(this);
-		ctx.putInheritStack(this.defaultOptions);
+		ctx.initInheritStack(this.defaultOptions);
 		ctx.setOutput(jsonOut);
 		if (fields == null) fields = new OutField(true);
 		ctx.setRootFields(fields);
