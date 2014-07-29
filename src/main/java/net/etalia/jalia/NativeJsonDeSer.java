@@ -1,12 +1,16 @@
 package net.etalia.jalia;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.etalia.jalia.stream.JsonReader;
 import net.etalia.jalia.stream.JsonToken;
 import net.etalia.jalia.stream.JsonWriter;
 
 public class NativeJsonDeSer implements JsonDeSer {
+	
+	private final static Logger LOG = Logger.getLogger(NativeJsonDeSer.class.getName());
 
 	@Override
 	public int handlesSerialization(JsonContext context, Class<?> clazz) {
@@ -80,7 +84,19 @@ public class NativeJsonDeSer implements JsonDeSer {
 						throw new IllegalStateException("Cannot deserialize a class", e);
 					}
 				} else if (!hint.isCharSequence()) {
-					throw new IllegalStateException("Found a string, but was expecting " + hint);
+					// Check if it's possible to convert it
+					if (hint.isLong()) {
+						ret = Long.parseLong((String)ret);
+					} else if (hint.isInteger()) {
+						ret = Integer.parseInt((String)ret);
+					} else if (hint.isDouble()) {
+						ret = Double.parseDouble((String)ret);
+					} else if (hint.isBoolean()) {
+						ret = Boolean.parseBoolean((String)ret);
+					} else {
+						throw new IllegalStateException("Found a string, but was expecting " + hint);
+					}
+					LOG.log(Level.WARNING, "Had to convert String to {0} {1}", new Object[] { hint.getType(), context.getStateLog() });
 				}
 			}
 		} else if (peek == JsonToken.BOOLEAN) {

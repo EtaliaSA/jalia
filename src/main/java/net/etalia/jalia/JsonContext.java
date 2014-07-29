@@ -22,6 +22,9 @@ public class JsonContext extends HashMap<String, Object>{
 	
 	private Stack<Map<String,Object>> localStack = new Stack<Map<String,Object>>();
 	private Stack<Map<String,Object>> inheritStack = new Stack<Map<String,Object>>();
+	private Stack<String> namesStack = new Stack<String>();
+	
+	private StateLog stateLog = new StateLog();
 	
 	public JsonContext(ObjectMapper mapper) {
 		this.mapper = mapper;
@@ -141,6 +144,7 @@ public class JsonContext extends HashMap<String, Object>{
 		currentFields = acsub;
 		localStack.push(null);
 		inheritStack.push(null);
+		namesStack.push(fieldName);
 		return true;
 	}
 	
@@ -152,14 +156,17 @@ public class JsonContext extends HashMap<String, Object>{
 		currentFields = currentFields.getParent();
 		localStack.pop();
 		inheritStack.pop();
+		namesStack.pop();
 	}
 
 	public void deserializationEntering(String name) {
 		this.deserCount++;
+		namesStack.push(name);
 	}
 	
 	public void deserializationExited() {
 		this.deserCount--;
+		namesStack.pop();
 	}
 	
 
@@ -170,5 +177,19 @@ public class JsonContext extends HashMap<String, Object>{
 		return deserCount == 0;
 	}
 
+	public class StateLog {
+		public String toString() {
+			StringBuilder ret = new StringBuilder();
+			if (namesStack != null)
+				ret.append(namesStack.toString());
+			if (input != null)
+				ret.append(" @" + input.getLineNumber() + ":" + input.getColumnNumber());
+			return ret.toString();
+		}
+	}
+	
+	public StateLog getStateLog() {
+		return stateLog;
+	}
 
 }

@@ -25,6 +25,8 @@ public class DummyPerson extends DummyEntity {
 	private List<String> secrets = null;
 	
 	private List<DummyPerson> friends = new ArrayList<>();
+	private Integer age = null;
+	private Boolean active = null;
 	
 	public DummyPerson() {}
 	
@@ -97,6 +99,19 @@ public class DummyPerson extends DummyEntity {
 	public List<DummyPerson> getSimilars() {
 		return Arrays.asList(new DummyPerson("p1-1", "Test", "Similar"));
 	}
+
+	public Integer getAge() {
+		return age;
+	}
+	public void setAge(Integer age) {
+		this.age = age;
+	}
 	
+	public Boolean getActive() {
+		return active;
+	}
+	public void setActive(Boolean active) {
+		this.active = active;
+	}
 	
 }

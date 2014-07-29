@@ -213,6 +213,9 @@ public class TypeUtil {
 		return Number.class.isAssignableFrom(getConcrete());
 	}
 	
+	public boolean isBoolean() {
+		return Boolean.class == getConcrete() || Boolean.TYPE == getConcrete();
+	}
 	
 
 	public boolean isArray() {

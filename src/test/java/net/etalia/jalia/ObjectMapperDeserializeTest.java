@@ -167,6 +167,8 @@ public class ObjectMapperDeserializeTest {
 					"'@entity':'Person'," +
 					"'name':'Mario',"+
 					"'surname':'Rossi'," +
+					"'age':21," +
+					"'active':true," +
 					"'addresses':[" +
 						"{" +
 							"'type':'EMAIL'," +
@@ -190,6 +192,8 @@ public class ObjectMapperDeserializeTest {
 		DummyPerson person = (DummyPerson) val;
 		assertThat(person.getName(), equalTo("Mario"));
 		assertThat(person.getSurname(), equalTo("Rossi"));
+		assertThat(person.getAge(), equalTo(21));
+		assertThat(person.getActive(), equalTo(true));
 		
 		assertThat(person.getAddresses(), hasSize(1));
 		assertThat(person.getAddresses().get(0), notNullValue());
@@ -200,6 +204,32 @@ public class ObjectMapperDeserializeTest {
 		
 		assertThat(person.getTags(), hasSize(2));
 		assertThat(person.getTags(), containsInAnyOrder("tag1","tag2"));
+	}
+
+	@Test
+	public void simpleEntityWithStrings() throws Exception {
+		String json = 
+				"{" +
+					"'@entity':'Person'," +
+					"'name':'Mario',"+
+					"'surname':'Rossi'," +
+					"'age':'21'," +
+					"'active':'true'" +
+				"}";
+		
+		ObjectMapper om = new ObjectMapper();
+		om.setEntityNameProvider(new DummyEntityProvider());
+		om.init();
+		Object val = om.readValue(json.replace("'", "\""));
+		
+		assertThat(val, notNullValue());
+		assertThat(val, instanceOf(DummyPerson.class));
+		
+		DummyPerson person = (DummyPerson) val;
+		assertThat(person.getName(), equalTo("Mario"));
+		assertThat(person.getSurname(), equalTo("Rossi"));
+		assertThat(person.getAge(), equalTo(21));
+		assertThat(person.getActive(), equalTo(true));
 	}
 	
 	@Test
