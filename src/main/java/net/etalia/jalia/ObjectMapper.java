@@ -190,11 +190,11 @@ public class ObjectMapper {
 	
 	public void writeValue(Object obj, JsonContext context) {
 		JsonDeSer deser = getSerializerFor(context, obj);
-		if (deser == null) throw new IllegalStateException("Cannot find a JSON serializer for " + obj);
+		if (deser == null) throw new IllegalStateException("Cannot find a JSON serializer for " + obj + " at " + context.getStateLog());
 		try {
 			deser.serialize(obj, context);
 		} catch (Throwable t) {
-			throw new IllegalStateException(t);
+			throw new IllegalStateException("Error writing " + context.getStateLog(), t);
 		}
 	}
 	
@@ -207,7 +207,7 @@ public class ObjectMapper {
 		try {
 			return readValue(ctx, pre, hint);
 		} catch (Exception e) {
-			throw new IllegalArgumentException("Error parsing " + jsonIn.getLineNumber() + ":" + jsonIn.getColumnNumber(), e);
+			throw new IllegalArgumentException("Error parsing " + ctx.getStateLog(), e);
 		}
 	}
 	
@@ -216,12 +216,12 @@ public class ObjectMapper {
 		if (hint != null && hint.getType().equals(Object.class)) hint = null;
 		
 		JsonDeSer deser = getDeserializerFor(ctx, hint);
-		if (deser == null) throw new IllegalStateException("Cannot find a JSON deserializer for " + pre + " " + hint);
+		if (deser == null) throw new IllegalStateException("Cannot find a JSON deserializer for " + pre + " " + hint + " at " + ctx.getStateLog());
 		try {
 			return deser.deserialize(ctx, pre, hint);
 		} catch (Throwable t) {
 			if (t instanceof IllegalStateException) throw (IllegalStateException)t;
-			throw new IllegalStateException(t);
+			throw new IllegalStateException("Error reading " + ctx.getStateLog(), t);
 		}
 		
 	}

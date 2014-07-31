@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertThat;
@@ -545,6 +546,50 @@ public class ObjectMapperDeserializeTest {
 		DummyPerson rperson = (DummyPerson) rpersonObj;
 		assertThat(rperson.getExtraData(), hasEntry("extra1", (Object)"extra"));
 		assertThat(rperson.getSecrets(), contains("s1","s2"));
+	}
+
+	@Test
+	public void nullBeans() throws Exception {
+		DummyPerson p1 = new DummyPerson();
+		p1.setIdentifier("p1");
+		
+		DummyPerson bf = new DummyPerson();
+		bf.setIdentifier("pbf");
+		p1.setBestFriend(bf);
+		
+		DummyEntityProvider provider = new DummyEntityProvider();
+		ObjectMapper om = new ObjectMapper();
+		om.setEntityNameProvider(provider);
+		om.setEntityFactory(provider);
+		om.setClassDataFactory(provider);
+		
+		provider.addToDb(p1);
+		
+		om.init();
+
+		{
+			String json = 
+					"{" +
+						"'@entity':'Person'," +
+						"'id':'p1'" +
+					"}";
+			
+			Object rpersonObj = om.readValue(json.replace("'", "\""));
+			DummyPerson rperson = (DummyPerson) rpersonObj;
+			assertThat(rperson.getBestFriend(), notNullValue());
+		}
+		{
+			String json = 
+					"{" +
+						"'@entity':'Person'," +
+						"'id':'p1'," +
+						"'bestFriend':null" +
+					"}";
+			
+			Object rpersonObj = om.readValue(json.replace("'", "\""));
+			DummyPerson rperson = (DummyPerson) rpersonObj;
+			assertThat(rperson.getBestFriend(), nullValue());
+		}
 	}
 	
 }

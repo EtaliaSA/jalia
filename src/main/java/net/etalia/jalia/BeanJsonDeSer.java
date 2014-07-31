@@ -22,7 +22,7 @@ public class BeanJsonDeSer implements JsonDeSer {
 	public int handlesDeserialization(JsonContext context, TypeUtil hint) {
 		JsonReader la = context.getInput().lookAhead();
 		try {
-			if (la.peek() != JsonToken.STRING) { 
+			if (la.peek() != JsonToken.STRING && la.peek() != JsonToken.NULL) { 
 				if (la.peek() != JsonToken.BEGIN_OBJECT) return -1;
 				la.beginObject();
 				while (la.hasNext()) {
@@ -173,6 +173,10 @@ public class BeanJsonDeSer implements JsonDeSer {
 				Object done = dones.get(id);
 				if (done != null) return done;
 			}
+		} else if (input.peek() == JsonToken.NULL) {
+			// null object, should not happen because native deser should take precedence
+			input.nextNull();
+			return null;
 		} else {
 			input.beginObject();
 			

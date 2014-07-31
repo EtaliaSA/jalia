@@ -26,16 +26,18 @@ public class NativeJsonDeSer implements JsonDeSer {
 	
 	@Override
 	public int handlesDeserialization(JsonContext context, TypeUtil hint) {
+		JsonToken peek = null;
+		try {
+			peek = context.getInput().peek();
+		} catch (IOException e) {}
+		if (peek == JsonToken.NULL) return 10;
+		
 		if (hint != null && hint.hasConcrete()) {
 			return handlesSerialization(context, hint.getConcrete());
 		}
-		try {
-			JsonToken peek = context.getInput().peek();
-			if (peek == JsonToken.NUMBER) return 10;
-			if (peek == JsonToken.BOOLEAN) return 10;
-			if (peek == JsonToken.STRING) return 10;
-			if (peek == JsonToken.NULL) return 10;
-		} catch (IOException e) {}
+		if (peek == JsonToken.NUMBER) return 10;
+		if (peek == JsonToken.BOOLEAN) return 10;
+		if (peek == JsonToken.STRING) return 10;
 		return -1;
 	}
 

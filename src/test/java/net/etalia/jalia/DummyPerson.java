@@ -25,6 +25,7 @@ public class DummyPerson extends DummyEntity {
 	private List<String> secrets = null;
 	
 	private List<DummyPerson> friends = new ArrayList<>();
+	private DummyPerson bestFriend = null;
 	private Integer age = null;
 	private Boolean active = null;
 	
@@ -112,6 +113,13 @@ public class DummyPerson extends DummyEntity {
 	}
 	public void setActive(Boolean active) {
 		this.active = active;
+	}
+	
+	public DummyPerson getBestFriend() {
+		return bestFriend;
+	}
+	public void setBestFriend(DummyPerson bestFriend) {
+		this.bestFriend = bestFriend;
 	}
 	
 }
