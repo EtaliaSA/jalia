@@ -117,6 +117,9 @@ public class JsonContext extends HashMap<String, Object>{
 	public OutField getRootFields() {
 		return rootFields;
 	}
+	public OutField getCurrentFields() {
+		return this.currentFields;
+	}
 	
 	public ObjectMapper getMapper() {
 		return mapper;

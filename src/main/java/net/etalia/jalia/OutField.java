@@ -138,4 +138,14 @@ public class OutField {
 		return ret;
 	}
 	
+	public void reparentSubs(String name) {
+		OutField nc = new OutField(this, name);
+		nc.subs = new HashMap<>(this.subs);
+		for (OutField sub : nc.subs.values()) {
+			sub.parent = nc;
+		}
+		this.subs.clear();
+		this.subs.put(name, nc);
+	}
+	
 }
