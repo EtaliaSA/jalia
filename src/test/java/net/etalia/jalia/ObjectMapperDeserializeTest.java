@@ -84,7 +84,7 @@ public class ObjectMapperDeserializeTest {
 
 	@Test
 	public void simpleList() throws Exception {
-		String json = "[ 1, 'a2', true]";
+		String json = "[ 1, 1.0, 'a2', true]";
 		json = replaceQuote(json);
 		
 		ObjectMapper mapper = new ObjectMapper();
@@ -95,7 +95,7 @@ public class ObjectMapperDeserializeTest {
 		assertThat(ret, instanceOf(List.class));
 		
 		List<Object> list = (List<Object>) ret;
-		assertThat(list, contains((Object)1.0d, "a2", true));
+		assertThat(list, contains((Object)1l, (Object)1.0d, "a2", true));
 	}
 
 	@Test
