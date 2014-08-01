@@ -57,7 +57,7 @@ public class NativeJsonDeSer implements JsonDeSer {
 		} else if (obj instanceof Class) {
 			output.value(((Class)obj).getName());
 		} else {
-			throw new IllegalStateException("Cannot serialize " + obj);
+			throw new IllegalStateException("Cannot serialize " + obj + " at " + context.getStateLog());
 		}
 	}
 
@@ -69,7 +69,7 @@ public class NativeJsonDeSer implements JsonDeSer {
 		if (peek == JsonToken.NULL) {
 			input.nextNull();
 			if (hint != null && !hint.isNullable()) {
-				throw new IllegalArgumentException("Was expecting a primitive " + hint + " but got null, can't set null on a primitive");
+				throw new IllegalArgumentException("Was expecting a primitive " + hint + " but got null, can't set null on a primitive  at " + context.getStateLog());
 			}
 			return null;
 		}
@@ -83,7 +83,7 @@ public class NativeJsonDeSer implements JsonDeSer {
 					try {
 						ret = Class.forName((String)ret);
 					} catch (ClassNotFoundException e) {
-						throw new IllegalStateException("Cannot deserialize a class", e);
+						throw new IllegalStateException("Cannot deserialize a class " + ret  + " at " + context.getStateLog(), e);
 					}
 				} else if (!hint.isCharSequence()) {
 					// Check if it's possible to convert it
@@ -96,7 +96,7 @@ public class NativeJsonDeSer implements JsonDeSer {
 					} else if (hint.isBoolean()) {
 						ret = Boolean.parseBoolean((String)ret);
 					} else {
-						throw new IllegalStateException("Found a string, but was expecting " + hint);
+						throw new IllegalStateException("Found a string, but was expecting " + hint + " at " + context.getStateLog());
 					}
 					LOG.log(Level.WARNING, "Had to convert String to {0} {1}", new Object[] { hint.getType(), context.getStateLog() });
 				}
@@ -104,18 +104,25 @@ public class NativeJsonDeSer implements JsonDeSer {
 		} else if (peek == JsonToken.BOOLEAN) {
 			ret = input.nextBoolean();
 		} else if (peek == JsonToken.NUMBER) {
-			// If we don't have a hint, use double
-			if (hint == null || hint.isDouble()) {
+			if (hint == null) {
+				// If we don't have a hint, use double or long
+				String valstr = input.nextString();
+				if (valstr.indexOf('.') == -1) {
+					ret = Long.parseLong(valstr);
+				} else {
+					ret = Double.parseDouble(valstr);
+				}
+			} else if (hint.isDouble()) {
 				ret = input.nextDouble();
 			} else if (hint.isInteger()) {
 				ret = input.nextInt();
 			} else if (hint.isLong()) {
 				ret = input.nextLong();
 			} else {
-				throw new IllegalStateException("Found a number, but was expecting " + hint);
+				throw new IllegalStateException("Found a number, but was expecting " + hint + " at " + context.getStateLog());
 			}
 		} else {
-			throw new IllegalStateException("Was expecting a string, boolean or number, but got " + peek);
+			throw new IllegalStateException("Was expecting a string, boolean or number, but got " + peek + " at " + context.getStateLog());
 		}
 		return ret;
 	}
