@@ -591,5 +591,17 @@ public class ObjectMapperDeserializeTest {
 			assertThat(rperson.getBestFriend(), nullValue());
 		}
 	}
+
+	@Test
+	public void invalidNativeDeserializations() throws Exception {
+		ObjectMapper om = new ObjectMapper();
+		
+		assertThat(om.readValue("test of string { with \"stuff\" [] }", String.class), equalTo("test of string { with \"stuff\" [] }"));
+		assertThat(om.readValue("1", Long.class), equalTo(1l));
+		assertThat(om.readValue("1.0", Double.class), equalTo(1.0d));
+		assertThat(om.readValue("true", Boolean.class), equalTo(true));
+		assertThat(om.readValue("null", Boolean.class), nullValue());
+		assertThat(om.readValue("null", DummyPerson.class), nullValue());
+	}
 	
 }

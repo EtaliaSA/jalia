@@ -582,5 +582,16 @@ public class ObjectMapperSerializeTest {
 		}
 	}
 	
+	@Test
+	public void invalidNativeSerialization() throws Exception {
+		ObjectMapper om = new ObjectMapper();
+		
+		assertThat(om.writeValueAsString("ciao"), equalTo("ciao"));
+		assertThat(om.writeValueAsString(1), equalTo("1"));
+		assertThat(om.writeValueAsString(1.0d), equalTo("1.0"));
+		assertThat(om.writeValueAsString(true), equalTo("true"));
+		assertThat(om.writeValueAsString(null), equalTo("null"));
+	}
+	
 
 }

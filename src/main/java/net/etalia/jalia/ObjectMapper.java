@@ -21,7 +21,9 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 
 import net.etalia.jalia.stream.JsonReader;
+import net.etalia.jalia.stream.JsonToken;
 import net.etalia.jalia.stream.JsonWriter;
+import net.etalia.jalia.stream.MalformedJsonException;
 import net.etalia.utils.LockHashMap;
 import net.etalia.utils.MissHolder;
 
@@ -29,6 +31,7 @@ public class ObjectMapper {
 
 	private List<JsonDeSer> registeredDeSers = new ArrayList<>();
 	private JsonDeSer nullDeSer = null;
+	private NativeJsonDeSer nativeDeSer = null;
 	private LockHashMap<Class<?>,MissHolder<JsonDeSer>> serializers = new LockHashMap<>();
 	private LockHashMap<TypeUtil,MissHolder<JsonDeSer>> deserializers = new LockHashMap<>();
 	
@@ -91,6 +94,7 @@ public class ObjectMapper {
 		inited = true;
 		NativeJsonDeSer nativeDeSer = new NativeJsonDeSer();
 		if (nullDeSer == null) nullDeSer = nativeDeSer;
+		if (this.nativeDeSer == null) this.nativeDeSer = nativeDeSer; 
 		registeredDeSers.add(nativeDeSer);
 		registeredDeSers.add(new MapJsonDeSer());
 		registeredDeSers.add(new ListJsonDeSer());
@@ -204,6 +208,26 @@ public class ObjectMapper {
 		configureReader(jsonIn);
 		JsonContext ctx = new JsonContext(this);
 		ctx.setInput(jsonIn);
+		boolean valid = true;
+		try {
+			JsonToken prepeek = jsonIn.peek();
+			valid = 
+				(prepeek == JsonToken.BEGIN_ARRAY)
+				||
+				(prepeek == JsonToken.BEGIN_OBJECT);
+		} catch (MalformedJsonException mje) {
+			valid = false;
+		} catch (IOException e) {
+			throw new IllegalArgumentException("Error reading input stream", e);
+		}
+		if (!valid) {
+			jsonIn.setLenient(true);
+			try {
+				return nativeDeSer.deserialize(ctx, pre, hint);
+			} catch (Exception e) {
+				throw new IllegalArgumentException("Error parsing raw value", e);
+			}
+		}
 		try {
 			return readValue(ctx, pre, hint);
 		} catch (Exception e) {
@@ -229,8 +253,17 @@ public class ObjectMapper {
 	// ---- Utility methods
 
 	public void writeValue(Writer out, OutField fields, Object obj) {
-		JsonWriter jw = new JsonWriter(out);
-		writeValue(jw, fields, obj);
+		init();
+		if (obj == null || nativeDeSer.handlesSerialization(null, obj.getClass()) == 10) {
+			try {
+				nativeDeSer.serializeRaw(obj, out);
+			} catch (IOException e) {
+				throw new IllegalStateException("Error while raw serializing", e);
+			}
+		} else {
+			JsonWriter jw = new JsonWriter(out);
+			writeValue(jw, fields, obj);
+		}
 	}
 
 	public void writeValue(Writer out, Object obj) {
@@ -302,6 +335,20 @@ public class ObjectMapper {
 	}
 	
 	public <T> T readValue(Reader r, TypeUtil hint) {
+		// Special case when we know we expect a string
+		if (hint != null && hint.isCharSequence()) {
+			StringWriter sw = new StringWriter();
+			char[] buff = new char[1024];
+			int len = 0;
+			try {
+				while ((len = r.read(buff)) >= 0) {
+					sw.write(buff, 0, len);
+				}
+			} catch (IOException e) {
+				throw new IllegalStateException("Error reading from stream", e);
+			}
+			return (T)sw.toString();
+		}
 		JsonReader reader = new JsonReader(r);
 		return (T)readValue(reader, null, hint);
 	}

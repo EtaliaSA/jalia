@@ -1,6 +1,7 @@
 package net.etalia.jalia;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,7 +30,7 @@ public class NativeJsonDeSer implements JsonDeSer {
 		JsonToken peek = null;
 		try {
 			peek = context.getInput().peek();
-		} catch (IOException e) {}
+		} catch (Exception e) {}
 		if (peek == JsonToken.NULL) return 10;
 		
 		if (hint != null && hint.hasConcrete()) {
@@ -58,6 +59,24 @@ public class NativeJsonDeSer implements JsonDeSer {
 			output.value(((Class)obj).getName());
 		} else {
 			throw new IllegalStateException("Cannot serialize " + obj + " at " + context.getStateLog());
+		}
+	}
+	
+	public void serializeRaw(Object obj, Writer output) throws IOException {
+		if (obj == null) {
+			output.write("null");
+		} else if (obj instanceof Number) {
+			output.write(((Number)obj).toString());
+		} else if (obj instanceof Boolean) {
+			output.write(((Boolean)obj).toString());
+		} else if (obj instanceof CharSequence) {
+			output.write(((CharSequence)obj).toString());
+		} else if (obj instanceof Enum) {
+			output.write(((Enum)obj).name());
+		} else if (obj instanceof Class) {
+			output.write(((Class)obj).getName());
+		} else {
+			throw new IllegalStateException("Cannot raw serialize " + obj);
 		}
 	}
 
