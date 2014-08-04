@@ -3,6 +3,7 @@ package net.etalia.jalia;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,8 @@ public class DummyPerson extends DummyEntity {
 	private DummyPerson bestFriend = null;
 	private Integer age = null;
 	private Boolean active = null;
+	
+	private Date birthDay;
 	
 	public DummyPerson() {}
 	
@@ -120,6 +123,13 @@ public class DummyPerson extends DummyEntity {
 	}
 	public void setBestFriend(DummyPerson bestFriend) {
 		this.bestFriend = bestFriend;
+	}
+	
+	public Date getBirthDay() {
+		return birthDay;
+	}
+	public void setBirthDay(Date birthDay) {
+		this.birthDay = birthDay;
 	}
 	
 }

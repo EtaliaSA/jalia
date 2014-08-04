@@ -9,6 +9,7 @@ import static org.junit.Assert.assertThat;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -236,6 +237,7 @@ public class ObjectMapperSerializeTest {
 
 		DummyPerson person = makePerson();
 		person.initTags("tag1","tag2");
+		person.setBirthDay(new Date(1000));
 		
 		String json = mapper.writeValueAsString(person, null);
 		System.out.println(json);
@@ -261,6 +263,8 @@ public class ObjectMapperSerializeTest {
 		assertThat(json, containsString("\"tags\":"));
 		assertThat(json, containsString("\"tag1\""));
 		assertThat(json, containsString("\"tag2\""));
+		
+		assertThat(json, containsString("\"birthDay\":1000"));
 		
 		assertThat(json, not(containsString("\"defaultType\"")));
 		

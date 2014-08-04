@@ -179,7 +179,8 @@ public class ObjectMapperDeserializeTest {
 					"'tags':[" +
 						"'tag1'," +
 						"'tag2'" +
-					"]" +
+					"]," +
+					"'birthDay':1000" +
 				"}";
 		
 		ObjectMapper om = new ObjectMapper();
@@ -195,6 +196,8 @@ public class ObjectMapperDeserializeTest {
 		assertThat(person.getSurname(), equalTo("Rossi"));
 		assertThat(person.getAge(), equalTo(21));
 		assertThat(person.getActive(), equalTo(true));
+		assertThat(person.getBirthDay(), notNullValue());
+		assertThat(person.getBirthDay().getTime(), equalTo(1000l));
 		
 		assertThat(person.getAddresses(), hasSize(1));
 		assertThat(person.getAddresses().get(0), notNullValue());

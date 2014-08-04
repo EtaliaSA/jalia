@@ -2,6 +2,7 @@ package net.etalia.jalia;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,6 +18,7 @@ public class NativeJsonDeSer implements JsonDeSer {
 	public int handlesSerialization(JsonContext context, Class<?> clazz) {
 		if (clazz == null) return 10;
 		if (clazz.isPrimitive()) return 10;
+		if (Date.class.isAssignableFrom(clazz)) return 10;
 		if (Number.class.isAssignableFrom(clazz)) return 10;
 		if (Boolean.class.isAssignableFrom(clazz)) return 10;
 		if (CharSequence.class.isAssignableFrom(clazz)) return 10;
@@ -47,6 +49,8 @@ public class NativeJsonDeSer implements JsonDeSer {
 		JsonWriter output = context.getOutput();
 		if (obj == null) {
 			output.nullValue();
+		} else if (obj instanceof Date) {
+			output.value(((Date)obj).getTime());
 		} else if (obj instanceof Number) {
 			output.value((Number)obj);
 		} else if (obj instanceof Boolean) {
@@ -65,6 +69,8 @@ public class NativeJsonDeSer implements JsonDeSer {
 	public void serializeRaw(Object obj, Writer output) throws IOException {
 		if (obj == null) {
 			output.write("null");
+		} else if (obj instanceof Date) {
+			output.write(Long.toString(((Date)obj).getTime()));
 		} else if (obj instanceof Number) {
 			output.write(((Number)obj).toString());
 		} else if (obj instanceof Boolean) {
@@ -137,6 +143,9 @@ public class NativeJsonDeSer implements JsonDeSer {
 				ret = input.nextInt();
 			} else if (hint.isLong()) {
 				ret = input.nextLong();
+			} else if (Date.class.isAssignableFrom(hint.getConcrete())) {
+				long ms = input.nextLong();
+				ret = new Date(ms);
 			} else {
 				throw new IllegalStateException("Found a number, but was expecting " + hint + " at " + context.getStateLog());
 			}
