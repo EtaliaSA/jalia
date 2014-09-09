@@ -111,7 +111,7 @@ public class MapJsonDeSer implements JsonDeSer {
 		}
 		if (val instanceof Long) {
 			Long l = (Long)val;
-			if (l.longValue() > Integer.MAX_VALUE) return val;
+			if (l.longValue() > Integer.MAX_VALUE || l < Integer.MIN_VALUE) return val;
 			return reduceNumber(l.intValue());
 		}
 		return val;

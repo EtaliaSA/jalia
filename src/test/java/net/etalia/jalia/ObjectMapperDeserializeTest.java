@@ -31,7 +31,7 @@ public class ObjectMapperDeserializeTest {
 	
 	@Test
 	public void simpleMap() throws Exception {
-		String json = "{ 'testString':'string', 'testInt':1, 'testBoolean':true, 'subMap' : { 'subString':'subString' }, 'testNull':null}";
+		String json = "{ 'testString':'string', 'testInt':1, 'testBoolean':true, 'subMap' : { 'subString':'subString' }, 'testNull':null, 'testLong':-62075462400000}";
 		json = replaceQuote(json);
 		
 		ObjectMapper mapper = new ObjectMapper();
@@ -45,6 +45,7 @@ public class ObjectMapperDeserializeTest {
 		assertThat(map, hasEntry("testString", (Object)"string"));
 		assertThat(map, hasEntry("testInt", (Object)1));
 		assertThat(map, hasEntry("testBoolean", (Object)true));
+		assertThat(map, hasEntry("testLong", (Object)(new Long(-62075462400000l))));
 		
 		Object subMapObj = map.get("subMap");
 		assertThat(subMapObj, notNullValue());
@@ -52,6 +53,7 @@ public class ObjectMapperDeserializeTest {
 		
 		Map<String,String> subMap = (Map<String, String>) subMapObj;
 		assertThat(subMap, hasEntry("subString", "subString"));
+		
 	}
 	
 	@Test
