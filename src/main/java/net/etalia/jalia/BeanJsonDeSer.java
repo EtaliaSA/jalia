@@ -231,7 +231,11 @@ public class BeanJsonDeSer implements JsonDeSer {
 		// If we don't have it, try based on the hint
 		if (hint != null) {
 			if (clazz == null) {
-				if (!hint.isInstantiatable()) throw new IllegalStateException("No @entity in the json, and " + hint + " is not instantiatable");
+				if (!hint.isInstantiatable()) {
+					if (entity == null)
+						throw new IllegalStateException("No @entity in the json, and " + hint + " is not instantiatable");
+					throw new IllegalStateException("Entity " + entity + " not mapped in factory, and " + hint + " is not instantiatable");
+				}
 				clazz = hint.getConcrete();
 			} else {
 				if (hint.hasConcrete()) {

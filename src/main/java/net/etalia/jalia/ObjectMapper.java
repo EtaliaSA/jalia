@@ -244,6 +244,7 @@ public class ObjectMapper {
 		try {
 			return deser.deserialize(ctx, pre, hint);
 		} catch (Throwable t) {
+			// TODO we should understand if this exception comes directly from the deserializer or from another call to ObjectMapper before rethrowing
 			if (t instanceof IllegalStateException) throw (IllegalStateException)t;
 			throw new IllegalStateException("Error reading " + ctx.getStateLog(), t);
 		}
