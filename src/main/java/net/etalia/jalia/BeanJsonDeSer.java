@@ -219,7 +219,7 @@ public class BeanJsonDeSer implements JsonDeSer {
 			if (factory != null) {
 				String preid = factory.getId(pre, context);
 				if (preid != null) {
-					if (id != null && !preid.equals(id)) {
+					if (id == null || !preid.equals(id)) {
 						pre = null;
 					}
 				} else if (id != null) {
