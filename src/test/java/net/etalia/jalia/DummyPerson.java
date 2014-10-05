@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.etalia.jalia.annotations.JsonRequireIdForReuse;
 import net.etalia.jalia.annotations.JsonIgnore;
 import net.etalia.jalia.annotations.JsonOnDemandOnly;
 import net.etalia.jalia.annotations.JsonSetter;
@@ -88,6 +89,7 @@ public class DummyPerson extends DummyEntity {
 		this.secrets = secrets;
 	}
 	
+	@JsonRequireIdForReuse
 	public List<DummyPerson> getFriends() {
 		return friends;
 	}

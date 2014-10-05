@@ -12,6 +12,8 @@ import net.etalia.jalia.stream.JsonWriter;
 
 public class BeanJsonDeSer implements JsonDeSer {
 
+	public static final String REUSE_WITHOUT_ID = "BEAN_JSON_DESER_REUSEWITHOUTID";
+
 	@Override
 	public int handlesSerialization(JsonContext context, Class<?> clazz) {
 		if (clazz.isPrimitive() || clazz.isArray()) return 0;
@@ -219,8 +221,14 @@ public class BeanJsonDeSer implements JsonDeSer {
 			if (factory != null) {
 				String preid = factory.getId(pre, context);
 				if (preid != null) {
-					if (id == null || !preid.equals(id)) {
-						pre = null;
+					if (context.getFromStackBoolean(REUSE_WITHOUT_ID)) {
+						if (id == null || !preid.equals(id)) {
+							pre = null;
+						}
+					} else { 
+						if (id != null && !preid.equals(id)) {
+							pre = null;
+						}
 					}
 				} else if (id != null) {
 					pre = null;
@@ -284,6 +292,7 @@ public class BeanJsonDeSer implements JsonDeSer {
 		while (input.hasNext()) {
 			String name = input.nextName();
 			context.deserializationEntering(name);
+			context.putLocalStack(cd.getOptions(name));			
 			Object preval = null;
 			TypeUtil hintval = cd.getSetHint(name);
 			if (hintval == null) hintval = cd.getGetHint(name);

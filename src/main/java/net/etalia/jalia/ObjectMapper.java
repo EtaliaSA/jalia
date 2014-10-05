@@ -207,6 +207,7 @@ public class ObjectMapper {
 		init();
 		configureReader(jsonIn);
 		JsonContext ctx = new JsonContext(this);
+		ctx.initInheritStack(this.defaultOptions);
 		ctx.setInput(jsonIn);
 		boolean valid = true;
 		try {
@@ -318,24 +319,35 @@ public class ObjectMapper {
 	
 	
 	
-	
 	public <T> T readValue(InputStream in, TypeUtil hint) {
+		return readValue(in, null, hint);
+	}
+	
+	public <T> T readValue(InputStream in, T pre, TypeUtil hint) {
 		InputStreamReader isr = null;
 		try {
 			isr = new InputStreamReader(in, Charset.forName("UTF-8"));
-			return (T)readValue(isr, hint);
+			return (T)readValue(isr, pre, hint);
 		} finally {
 			try {
 				isr.close();
 			} catch (IOException e) {}
 		}
 	}	
-	
+
 	public <T> T readValue(InputStream in, Class<T> clazz) {
+		return readValue(in, null, clazz);
+	}
+	
+	public <T> T readValue(InputStream in, T pre, Class<T> clazz) {
 		return readValue(in, TypeUtil.get(clazz));
 	}
 	
 	public <T> T readValue(Reader r, TypeUtil hint) {
+		return readValue(r, null, hint);
+	}
+	
+	public <T> T readValue(Reader r, T pre, TypeUtil hint) {
 		// Special case when we know we expect a string
 		if (hint != null && hint.isCharSequence()) {
 			StringWriter sw = new StringWriter();
@@ -351,37 +363,60 @@ public class ObjectMapper {
 			return (T)sw.toString();
 		}
 		JsonReader reader = new JsonReader(r);
-		return (T)readValue(reader, null, hint);
+		return (T)readValue(reader, pre, hint);
 	}
-	
+
 	public <T> T readValue(String json, TypeUtil hint) {
+		return readValue(json, null, hint);
+	}
+	
+	public <T> T readValue(String json, T pre, TypeUtil hint) {
 		StringReader reader = new StringReader(json);
-		return readValue(reader, hint);
+		return readValue(reader, pre, hint);
 	}
-	
+
 	public <T> T readValue(String json, Class<T> clazz) {
-		return readValue(json, TypeUtil.get(clazz));
+		return readValue(json, null, clazz);
 	}
 	
+	public <T> T readValue(String json, T pre, Class<T> clazz) {
+		return readValue(json, pre, TypeUtil.get(clazz));
+	}	
+
 	public <T> T readValue(byte[] json, TypeUtil hint) {
+		return readValue(json, null, hint);
+	}
+	
+	public <T> T readValue(byte[] json, T pre, TypeUtil hint) {
 		ByteArrayInputStream bais = new ByteArrayInputStream(json);
 		try {
-			return readValue(bais, hint);
+			return readValue(bais, pre, hint);
 		} finally {
 			try {
 				bais.close();
 			} catch (IOException e) {}
 		}
 	}
-	
+
 	public <T> T readValue(byte[] json, Class<T> clazz) {
-		return readValue(json, TypeUtil.get(clazz));
+		return readValue(json, null, clazz);
+	}
+	
+	public <T> T readValue(byte[] json, T pre, Class<T> clazz) {
+		return readValue(json, pre, TypeUtil.get(clazz));
 	}
 
+
 	public <T> T readValue(byte[] json) {
-		return readValue(json, (TypeUtil)null);
+		return readValue(json, null, (TypeUtil)null);
+	}	
+	public <T> T readValue(byte[] json, T pre) {
+		return readValue(json, pre, (TypeUtil)null);
 	}	
 	public <T> T readValue(String json) {
 		return readValue(json, (TypeUtil)null);
+	}
+	public <T> T readValue(String json, T pre) {
+		return readValue(json, pre, (TypeUtil)null);
 	}
 }

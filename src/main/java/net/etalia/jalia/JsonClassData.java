@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import net.etalia.jalia.annotations.JsonDefaultFields;
+import net.etalia.jalia.annotations.JsonRequireIdForReuse;
 import net.etalia.jalia.annotations.JsonGetter;
 import net.etalia.jalia.annotations.JsonIgnore;
 import net.etalia.jalia.annotations.JsonIgnoreProperties;
@@ -246,6 +247,10 @@ public class JsonClassData {
 				opts.put(DefaultOptions.INCLUDE_NULLS.toString(), false);
 				opts.put(DefaultOptions.INCLUDE_EMPTY.toString(), false);
 			}
+		}
+		
+		if (ele.isAnnotationPresent(JsonRequireIdForReuse.class)) {
+			opts.put(BeanJsonDeSer.REUSE_WITHOUT_ID, true);
 		}
 	}
 

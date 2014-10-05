@@ -6,6 +6,8 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.*;
 
+import net.etalia.jalia.DummyAddress.AddressType;
+
 import org.junit.Test;
 
 public class ListCrudingTest {
@@ -66,5 +68,34 @@ public class ListCrudingTest {
 		assertThat(mainp.getFriends().get(2).getSurname(), equalTo("Justmet"));
 		
 	}
-
+	
+	@Test
+	public void notOnRootOrSubBeans() throws Exception {
+		DummyPerson df = new DummyPerson("p2", "Edmondo","Amicis");
+		DummyPerson dp = new DummyPerson("p1", "Smone", "Gianni");
+		dp.setBestFriend(df);
+		
+		DummyEntityProvider ep = new DummyEntityProvider();
+		ep.addToDb(df,dp);
+		
+		ObjectMapper om = new ObjectMapper();
+		om.setEntityNameProvider(ep);
+		om.setEntityFactory(ep);
+		
+		String update = "" +
+				"{" +
+					"'@entity':'Person'," +
+					"'name':'Simone'," +
+					"'bestFriend':{" +
+						"'surname':'De Amicis'" +
+					"}" +
+				"}" +
+				"";
+		
+		DummyPerson readp = om.readValue(update.replace('\'', '"'), dp, DummyPerson.class);
+		assertThat(readp, sameInstance(dp));
+		assertThat(readp.getBestFriend(), sameInstance(df));
+		assertThat(readp.getIdentifier(), equalTo("p1"));
+		assertThat(readp.getBestFriend().getIdentifier(), equalTo("p2"));
+	}
 }

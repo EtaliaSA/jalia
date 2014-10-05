@@ -65,6 +65,7 @@ public class JsonContext extends HashMap<String, Object>{
 	}	
 	
 	public Object getFromStack(String name) {
+		if (localStack.size() == 0) return null;
 		Map<String, Object> peek = localStack.peek();
 		if (peek != null && peek.containsKey(name)) return peek.get(name);
 		for (int i = inheritStack.size() - 1; i >= 0; i--) {
@@ -164,12 +165,16 @@ public class JsonContext extends HashMap<String, Object>{
 
 	public void deserializationEntering(String name) {
 		this.deserCount++;
+		localStack.push(null);
+		inheritStack.push(null);
 		namesStack.push(name);
 	}
 	
 	public void deserializationExited() {
 		this.deserCount--;
 		namesStack.pop();
+		localStack.pop();
+		inheritStack.pop();
 	}
 	
 
