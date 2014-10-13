@@ -15,6 +15,9 @@ import net.etalia.jalia.stream.JsonWriter;
 
 public class ListJsonDeSer implements JsonDeSer {
 
+	public static final String DROP = "LIST_JSON_DESER_DROP";
+	public static final String CLEAR = "LIST_JSON_DESER_CLEAR";
+
 	@Override
 	public int handlesSerialization(JsonContext context, Class<?> clazz) {
 		if (Iterable.class.isAssignableFrom(clazz)) return 10;
@@ -72,6 +75,7 @@ public class ListJsonDeSer implements JsonDeSer {
 	@Override
 	public Object deserialize(JsonContext context, Object pre, TypeUtil hint) throws IOException {
 		Collection<Object> act = null;
+		boolean wasArray = (pre != null && pre.getClass().isArray()); 
 		if (pre != null && pre.getClass().isArray()) {
 			act = new ArrayList<Object>();
 			for (int i = 0; i < Array.getLength(pre); i++) {
@@ -93,7 +97,8 @@ public class ListJsonDeSer implements JsonDeSer {
 				}
 			}
 		}
-		if (inner == null || !inner.hasConcrete() || inner.getConcrete() == Object.class) {
+		if (context.getFromStackBoolean(DROP) || inner == null || !inner.hasConcrete() || inner.getConcrete() == Object.class) {
+			if (context.getFromStackBoolean(DROP)) act = null;
 			if (hint != null) {
 				if (hint.isInstantiatable()) {
 					try {
@@ -126,6 +131,7 @@ public class ListJsonDeSer implements JsonDeSer {
 			} else {
 				lst = new ArrayList<>(act);
 			}
+			if (context.getFromStackBoolean(CLEAR)) lst.clear();
 			List<Object> found = new ArrayList<>();
 			while (input.hasNext()) {
 				Object preval = null;
@@ -161,7 +167,7 @@ public class ListJsonDeSer implements JsonDeSer {
 			}
 		}
 		input.endArray();
-		if ((pre != null && pre.getClass().isArray()) || (hint != null && hint.isArray())) {
+		if (wasArray || (hint != null && hint.isArray())) {
 			if (pre == null || Array.getLength(pre) != act.size()) {
 				pre = Array.newInstance(inner.getConcrete(), act.size());
 			}

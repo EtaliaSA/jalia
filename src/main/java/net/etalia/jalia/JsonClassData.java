@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import net.etalia.jalia.annotations.JsonCollection;
 import net.etalia.jalia.annotations.JsonDefaultFields;
 import net.etalia.jalia.annotations.JsonRequireIdForReuse;
 import net.etalia.jalia.annotations.JsonGetter;
@@ -251,6 +252,12 @@ public class JsonClassData {
 		
 		if (ele.isAnnotationPresent(JsonRequireIdForReuse.class)) {
 			opts.put(BeanJsonDeSer.REUSE_WITHOUT_ID, true);
+		}
+		
+		if (ele.isAnnotationPresent(JsonCollection.class)) {
+			JsonCollection ann = ele.getAnnotation(JsonCollection.class);
+			opts.put(ListJsonDeSer.DROP, ann.drop());
+			opts.put(ListJsonDeSer.CLEAR, ann.clear());
 		}
 	}
 
