@@ -225,6 +225,7 @@ public class ObjectMapperSerializeTest {
 		
 		DummyAddress address = new DummyAddress("a1", AddressType.EMAIL, "simoneg@apache.org");
 		address.setNotes("Doremi");
+		address.initTags("addressTag1","addressTag2");
 		person.getAddresses().add(address);
 		
 		return person;
@@ -491,7 +492,6 @@ public class ObjectMapperSerializeTest {
 		
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.init();
-
 		{
 			OutField of = new OutField(null);
 			of.getCreateSub("name");
@@ -501,6 +501,7 @@ public class ObjectMapperSerializeTest {
 			System.out.println(json);
 			
 			assertThat(json, not(containsString("Doremi")));
+			assertThat(json, not(containsString("addressTag1")));
 		}
 		{
 			OutField of = new OutField(null);
@@ -511,7 +512,23 @@ public class ObjectMapperSerializeTest {
 			System.out.println(json);
 			
 			assertThat(json, containsString("Doremi"));
+			assertThat(json, containsString("addressTag1"));
 		}
+		// TODO we could implement this, the double star
+		/*
+		{
+			Map<String,Object> map = new HashMap<>();
+			map.put("users", Arrays.asList(person));
+			
+			OutField of = new OutField(null);
+			of.getCreateSub("users.**");
+			
+			String json = mapper.writeValueAsString(map, of);
+			System.out.println(json);
+			
+			assertThat(json, containsString("addressTag1"));
+		}
+		*/
 	}
 	
 	@Test

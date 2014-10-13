@@ -1,5 +1,9 @@
 package net.etalia.jalia;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import net.etalia.jalia.annotations.JsonDefaultFields;
 import net.etalia.jalia.annotations.JsonIgnore;
 
@@ -19,6 +23,7 @@ public class DummyAddress extends DummyEntity {
 	private AddressType type;
 	private String address;
 	private String notes;
+	private Set<String> tags = new HashSet<String>();
 	
 	private DummyAddress() {}
 	
@@ -48,6 +53,16 @@ public class DummyAddress extends DummyEntity {
 	public void setNotes(String notes) {
 		this.notes = notes;
 	}
+	
+	public Set<String> getTags() {
+		return tags;
+	}
+	
+	public DummyAddress initTags(String... tags) {
+		this.tags.addAll(Arrays.asList(tags));
+		return this;
+	}	
+	
 
 	@Override
 	public String toString() {
