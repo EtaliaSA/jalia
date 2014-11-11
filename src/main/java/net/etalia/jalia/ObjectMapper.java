@@ -184,7 +184,7 @@ public class ObjectMapper {
 	public void writeValue(JsonWriter jsonOut, OutField fields, Object obj) {
 		init();
 		configureWriter(jsonOut);
-		JsonContext ctx = new JsonContext(this);
+		JsonContext ctx = createContext();
 		ctx.initInheritStack(this.defaultOptions);
 		ctx.setOutput(jsonOut);
 		if (fields == null) fields = new OutField(true);
@@ -206,7 +206,7 @@ public class ObjectMapper {
 	public Object readValue(JsonReader jsonIn, Object pre, TypeUtil hint) {
 		init();
 		configureReader(jsonIn);
-		JsonContext ctx = new JsonContext(this);
+		JsonContext ctx = createContext();
 		ctx.initInheritStack(this.defaultOptions);
 		ctx.setInput(jsonIn);
 		boolean valid = true;
@@ -250,6 +250,10 @@ public class ObjectMapper {
 			throw new IllegalStateException("Error reading " + ctx.getStateLog(), t);
 		}
 		
+	}
+	
+	protected JsonContext createContext() {
+		return new JsonContext(this);
 	}
 	
 	// ---- Utility methods
