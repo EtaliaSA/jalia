@@ -351,6 +351,41 @@ public class ObjectMapperSerializeTest {
 	}
 	
 	@Test
+	public void objectLoopWithFields() throws Exception {
+		DummyPerson person1 = new DummyPerson();
+		DummyPerson person2 = new DummyPerson();
+		
+		person1.setIdentifier("p1");
+		person2.setIdentifier("p2");
+		
+		person1.getFriends().add(person2);
+		person2.getFriends().add(person1);
+		
+		ObjectMapper om = new ObjectMapper();
+		om.setOption(DefaultOptions.UNROLL_OBJECTS, true);
+		DummyEntityProvider prov = new DummyEntityProvider();
+		om.setEntityNameProvider(prov);
+		om.setEntityFactory(prov);
+		om.setClassDataFactory(prov);
+		
+		String json = null;
+		try {
+			json = om.writeValueAsString(person1, OutField.getRoot("friends.id","friends.friends.id"));
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail(t.getClass().getName() + " : " + t.getMessage());
+		}
+		
+		System.out.println(json);
+
+		int fp1 = json.indexOf("p1");
+		int fp2 = json.indexOf("p2");
+		int sp1 = json.indexOf("p1", fp2);
+		
+		assertTrue("Expecting a 'p1' followed by 'p2' followed by 'p1' again", fp1 < fp2 && fp2 < sp1);
+	}
+	
+	@Test
 	public void sameInstanceEmbedded() throws Exception {
 		DummyPerson person1 = new DummyPerson();
 		DummyPerson person2 = new DummyPerson();

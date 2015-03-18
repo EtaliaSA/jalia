@@ -152,6 +152,12 @@ public class JsonContext extends HashMap<String, Object>{
 		return true;
 	}
 	
+	public boolean isSerializingAll() {
+		return currentFields.isAll();
+	}
+
+	
+	
 	public Set<String> getCurrentSubs() {
 		return currentFields.getSubsNames();
 	}

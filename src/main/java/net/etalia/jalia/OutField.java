@@ -148,4 +148,7 @@ public class OutField {
 		this.subs.put(name, nc);
 	}
 	
+	public boolean isAll() {
+		return all;
+	}
 }

@@ -68,8 +68,10 @@ public class BeanJsonDeSer implements JsonDeSer {
 			if (id != null) {
 				// Prevent loops in serialization
 				if (context.hasInLocalStack("All_SerializeStack", obj)) {
-					output.value(id);
-					return;
+					if (!context.getFromStackBoolean(DefaultOptions.UNROLL_OBJECTS.toString()) || context.isSerializingAll()) {
+						output.value(id);
+						return;
+					}
 				}
 				
 				// Prevent sending and object twice, send on ly the id, unless DefaultOptions.UNROLL_OBJECT
@@ -87,9 +89,11 @@ public class BeanJsonDeSer implements JsonDeSer {
 		}
 
 		if (context.hasInLocalStack("All_SerializeStack", obj)) {
-			// TODO this avoid loops, but also break serialization, cause there is no id to send
-			output.clearName();			
-			return;
+			if (!context.getFromStackBoolean(DefaultOptions.UNROLL_OBJECTS.toString()) || context.isSerializingAll()) {
+				// TODO this avoid loops, but also break serialization, cause there is no id to send
+				output.clearName();			
+				return;
+			}
 		}		
 		
 		context.putLocalStack("All_SerializeStack", obj);
